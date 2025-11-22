@@ -59,29 +59,44 @@ app.whenReady().then(() => {
 
     ipcMain.on('save-session', (event, session) => {
         try {
-            // Sanitize session name for folder usage (basic)
             const safeName = session.name.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
             const sessionDir = path.join(sproutPath, safeName);
 
             if (!fs.existsSync(sessionDir)) {
                 fs.mkdirSync(sessionDir, { recursive: true });
             }
-
             // Copy files
             const processedFiles = [];
             if (session.files && Array.isArray(session.files)) {
                 for (const file of session.files) {
                     if (file.path && file.name) {
                         try {
-                            const destPath = path.join(sessionDir, file.name);
+                            const ext = path.extname(file.name).toLowerCase();
+                            let subfolder = 'others';
+
+                            if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext)) {
+                                subfolder = 'images';
+                            } else if (['.pdf', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx'].includes(ext)) {
+                                subfolder = 'documents';
+                            }
+
+                            const categoryDir = path.join(sessionDir, subfolder);
+                            if (!fs.existsSync(categoryDir)) {
+                                fs.mkdirSync(categoryDir, { recursive: true });
+                            }
+
+                            const destPath = path.join(categoryDir, file.name);
                             fs.copyFileSync(file.path, destPath);
-                            processedFiles.push(file.name); // Store only name
+
+                            // Store relative path or just name? 
+                            // If we store relative path (e.g. "images/foo.png"), the renderer needs to handle it.
+                            // For now, let's store the relative path so we know where it is.
+                            processedFiles.push(path.join(subfolder, file.name));
                         } catch (err) {
                             console.error(`Failed to copy file ${file.name}:`, err);
-                            processedFiles.push(file.name); // Keep name even if copy fails? Or skip? Keeping for now.
+                            processedFiles.push(file.name);
                         }
                     } else {
-                        // Handle legacy or simple string case if needed, or just push name
                         processedFiles.push(file.name || file);
                     }
                 }

@@ -128,7 +128,22 @@ const StudySessionsModule = (() => {
         const session = {
             id: Date.now(),
             name: name,
-            files: uploadedFiles.map(f => ({ name: f.name, path: f.path })),
+            files: uploadedFiles.map(f => {
+                // Electron's File object has a path property, but it might not serialize automatically
+                // or requires webUtils in newer Electron versions.
+                // Since we have nodeIntegration: true, let's try accessing it directly but explicitly.
+                // If f.path is undefined, we might need webUtils.
+                let filePath = f.path;
+                if (!filePath) {
+                    try {
+                        const { webUtils } = require('electron');
+                        filePath = webUtils.getPathForFile(f);
+                    } catch (e) {
+                        // console.error('Error getting path:', e);
+                    }
+                }
+                return { name: f.name, path: filePath };
+            }),
             createdAt: new Date().toISOString()
         };
 
