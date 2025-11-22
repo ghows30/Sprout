@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Sprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-seedling"></i> Sprout
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" data-view="home">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-view="study-spaces">
+                    <i class="fas fa-layer-group"></i> Spazi di Studio
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-view="settings">
+                    <i class="fas fa-cog"></i> Impostazioni
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <!-- Home View -->
+        <div id="home" class="view-section">
+            <header>
+                <h1>Dashboard</h1>
+                <p class="subtitle">I tuoi appunti e documenti.</p>
+            </header>
+
+            <section>
+                <h2>Accesso Rapido</h2>
+                <div class="grid">
+                    <div class="card" id="new-session-btn">
+                        <div class="card-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <h3>Nuova Sessione</h3>
+                        <p>Crea una nuova sessione di studio.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-file-import"></i>
+                        </div>
+                        <h3>Importa PDF</h3>
+                        <p>Carica slide o documenti da studiare.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Recenti</h3>
+                        <p>Riprendi da dove avevi lasciato.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Recenti</h2>
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-icon"
+                            style="background-color: rgba(236, 240, 241, 0.5); color: var(--text-main);">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3>Analisi Matematica</h3>
+                        <p>Ultima modifica: 2 ore fa</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Study Spaces View -->
+        <div id="study-spaces" class="view-section" style="display: none;">
+            <header>
+                <h1>Spazi di Studio</h1>
+                <p class="subtitle">Le tue sessioni organizzate.</p>
+            </header>
+            <div class="grid" id="sessions-grid">
+                <!-- Folders will be injected here -->
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings" class="view-section" style="display: none;">
+            <header>
+                <h1>Impostazioni</h1>
+                <p class="subtitle">Gestisci le tue preferenze.</p>
+            </header>
+            <p>Work in progress...</p>
+        </div>
+    </main>
+
+    <!-- New Session Modal -->
+    <div id="new-session-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Nuova Sessione</h2>
+            <div class="form-group">
+                <label for="session-name">Nome Sessione</label>
+                <input type="text" id="session-name" placeholder="Es. Analisi 1, Storia...">
+            </div>
+            <div class="form-group">
+                <label>Importa Materiale</label>
+                <div id="drop-zone" class="drop-zone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Trascina qui i file o clicca per selezionare</p>
+                </div>
+                <div id="file-list" class="file-list"></div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="btn btn-secondary">Annulla</button>
+                <button id="create-session-btn" class="btn btn-primary">Crea Sessione</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>
