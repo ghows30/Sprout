@@ -128,7 +128,7 @@ const StudySessionsModule = (() => {
         const session = {
             id: Date.now(),
             name: name,
-            files: uploadedFiles.map(f => f.name),
+            files: uploadedFiles.map(f => ({ name: f.name, path: f.path })),
             createdAt: new Date().toISOString()
         };
 

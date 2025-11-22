@@ -67,6 +67,27 @@ app.whenReady().then(() => {
                 fs.mkdirSync(sessionDir, { recursive: true });
             }
 
+            // Copy files
+            const processedFiles = [];
+            if (session.files && Array.isArray(session.files)) {
+                for (const file of session.files) {
+                    if (file.path && file.name) {
+                        try {
+                            const destPath = path.join(sessionDir, file.name);
+                            fs.copyFileSync(file.path, destPath);
+                            processedFiles.push(file.name); // Store only name
+                        } catch (err) {
+                            console.error(`Failed to copy file ${file.name}:`, err);
+                            processedFiles.push(file.name); // Keep name even if copy fails? Or skip? Keeping for now.
+                        }
+                    } else {
+                        // Handle legacy or simple string case if needed, or just push name
+                        processedFiles.push(file.name || file);
+                    }
+                }
+            }
+            session.files = processedFiles;
+
             const filePath = path.join(sessionDir, 'session.json');
             fs.writeFileSync(filePath, JSON.stringify(session, null, 2));
         } catch (error) {
