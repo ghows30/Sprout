@@ -118,9 +118,14 @@
                 <aside class="session-sidebar" id="session-sidebar">
                     <!-- Documents Section -->
                     <div class="sidebar-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-folder-open"></i> Documenti
-                        </h3>
+                        <div class="section-title-row">
+                            <h3 class="section-title">
+                                <i class="fas fa-folder-open"></i> Documenti
+                            </h3>
+                            <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                         <ul id="session-file-list" class="session-file-list">
                             <!-- Files will be injected here -->
                         </ul>
@@ -251,6 +256,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="modules/eventmanager.js"></script>
     <script src="modules/home.js"></script>

@@ -155,6 +155,93 @@ app.whenReady().then(() => {
             console.error('Error saving session data:', error);
         }
     });
+
+    ipcMain.handle('add-files-to-session', async (event, { sessionPath }) => {
+        try {
+            const { dialog } = require('electron');
+
+            // Open file dialog
+            const result = await dialog.showOpenDialog({
+                properties: ['openFile', 'multiSelections'],
+                filters: [
+                    { name: 'Tutti i file', extensions: ['*'] },
+                    { name: 'Documenti', extensions: ['pdf', 'doc', 'docx', 'txt', 'md'] },
+                    { name: 'Immagini', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'] },
+                    { name: 'Fogli di calcolo', extensions: ['xls', 'xlsx'] },
+                    { name: 'Presentazioni', extensions: ['ppt', 'pptx'] }
+                ]
+            });
+
+            if (result.canceled || result.filePaths.length === 0) {
+                return { success: false, canceled: true };
+            }
+
+            // Read existing session
+            const sessionJsonPath = path.join(sessionPath, 'session.json');
+            let session = {};
+            if (fs.existsSync(sessionJsonPath)) {
+                session = JSON.parse(fs.readFileSync(sessionJsonPath, 'utf8'));
+            }
+
+            // Copy files to appropriate subfolders and update session
+            const existingFiles = session.files || [];
+            const newFiles = [];
+            const duplicates = [];
+
+            for (const filePath of result.filePaths) {
+                const fileName = path.basename(filePath);
+                const ext = path.extname(fileName).toLowerCase();
+
+                // Determine subfolder based on file type
+                let subfolder = 'others';
+                if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext)) {
+                    subfolder = 'images';
+                } else if (['.pdf', '.txt', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.md'].includes(ext)) {
+                    subfolder = 'documents';
+                }
+
+                // Create subfolder if it doesn't exist
+                const categoryDir = path.join(sessionPath, subfolder);
+                if (!fs.existsSync(categoryDir)) {
+                    fs.mkdirSync(categoryDir, { recursive: true });
+                }
+
+                // Copy file
+                const destPath = path.join(categoryDir, fileName);
+                const relativePath = path.join(subfolder, fileName);
+
+                // Check if file already exists in session
+                if (existingFiles.includes(relativePath)) {
+                    duplicates.push(fileName);
+                    continue;
+                }
+
+                try {
+                    // Copy file
+                    fs.copyFileSync(filePath, destPath);
+                    newFiles.push(relativePath);
+                } catch (err) {
+                    console.error(`Failed to copy file ${fileName}:`, err);
+                }
+            }
+
+            // Update session files
+            session.files = [...existingFiles, ...newFiles];
+
+            // Save updated session
+            fs.writeFileSync(sessionJsonPath, JSON.stringify(session, null, 2));
+
+            return {
+                success: true,
+                files: session.files,
+                newFilesCount: newFiles.length,
+                duplicates: duplicates
+            };
+        } catch (error) {
+            console.error('Error adding files to session:', error);
+            return { success: false, error: error.message };
+        }
+    });
 });
 
 app.on('window-all-closed', () => {

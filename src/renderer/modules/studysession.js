@@ -11,6 +11,7 @@ const StudySessionsModule = (() => {
     let flashcardList, createFlashcardBtn, importFlashcardBtn;
     let documentViewer, viewerPlaceholder, viewerContent, viewerFilename, closeViewerBtn, documentIframe, documentImage, splitResizer;
     let timerModal, closeTimerModal, timerIconBtn, timerCountdown;
+    let addDocumentBtn;
 
     function init() {
 
@@ -80,6 +81,9 @@ const StudySessionsModule = (() => {
         closeTimerModal = document.getElementById('close-timer-modal');
         timerIconBtn = document.getElementById('timer-icon-btn');
         timerCountdown = document.getElementById('timer-countdown');
+
+        // Add Document Button
+        addDocumentBtn = document.getElementById('add-document-btn');
     }
 
     function bindEvents() {
@@ -138,6 +142,9 @@ const StudySessionsModule = (() => {
         // Document viewer controls
         if (closeViewerBtn) closeViewerBtn.addEventListener('click', closeDocument);
         initSplitResizer();
+
+        // Add document button
+        if (addDocumentBtn) addDocumentBtn.addEventListener('click', addDocumentsToSession);
 
         // Resizer Logic
         if (sessionResizer) {
@@ -664,6 +671,101 @@ const StudySessionsModule = (() => {
                 splitResizer.classList.remove('resizing');
             }
         });
+    }
+
+    // Toast Notification System
+    function showToast(title, message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type]} toast-icon"></i>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        // Close button
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => removeToast(toast));
+
+        // Auto remove
+        setTimeout(() => removeToast(toast), duration);
+    }
+
+    function removeToast(toast) {
+        toast.classList.add('removing');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }
+
+    // Add Documents to Session
+    async function addDocumentsToSession() {
+        if (!currentSession) {
+            showToast('Errore', 'Nessuna sessione attiva', 'error');
+            return;
+        }
+
+        const { ipcRenderer } = require('electron');
+
+        try {
+            // Open file dialog
+            const result = await ipcRenderer.invoke('add-files-to-session', {
+                sessionPath: currentSession.fullPath
+            });
+
+            if (result.success && result.files && result.files.length > 0) {
+                // Check for duplicates
+                if (result.duplicates && result.duplicates.length > 0) {
+                    const dupCount = result.duplicates.length;
+                    showToast(
+                        'File duplicati',
+                        `${dupCount} file ${dupCount === 1 ? 'è già presente' : 'sono già presenti'} nella sessione`,
+                        'warning'
+                    );
+                }
+
+                // Check for new files added
+                const newCount = result.newFilesCount || 0;
+                if (newCount > 0) {
+                    // Update current session files
+                    currentSession.files = result.files;
+
+                    // Re-render file list
+                    openSession(currentSession);
+
+                    showToast(
+                        'File aggiunti',
+                        `${newCount} ${newCount === 1 ? 'file aggiunto' : 'file aggiunti'} con successo`,
+                        'success'
+                    );
+                }
+            } else if (result.canceled) {
+                // User canceled - no notification needed
+            }
+        } catch (error) {
+            console.error('Errore durante l\'aggiunta dei file:', error);
+            showToast('Errore', 'Impossibile aggiungere i file', 'error');
+        }
     }
 
     function importFlashcards() {
