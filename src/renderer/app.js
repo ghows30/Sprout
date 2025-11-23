@@ -8,6 +8,53 @@ const App = (() => {
 
         setupNavigation();
         setupObservers();
+        setupSidebar();
+    }
+
+    function setupSidebar() {
+        const sidebar = document.getElementById('main-sidebar');
+        const resizer = document.getElementById('main-resizer');
+        const toggleBtn = document.getElementById('main-sidebar-toggle');
+
+        // Toggle Logic
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        // Resize Logic
+        if (resizer && sidebar) {
+            resizer.addEventListener('mousedown', initResize);
+
+            function initResize(e) {
+                e.preventDefault();
+                window.addEventListener('mousemove', resize);
+                window.addEventListener('mouseup', stopResize);
+                resizer.classList.add('resizing');
+                sidebar.style.transition = 'none'; // Disable transition during drag
+            }
+
+            function resize(e) {
+                const newWidth = e.clientX;
+                if (newWidth > 150 && newWidth < 400) {
+                    sidebar.style.width = `${newWidth}px`;
+                    if (sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.remove('collapsed');
+                    }
+                } else if (newWidth <= 100) {
+                    // Optional: snap to collapsed if dragged too small
+                    // sidebar.classList.add('collapsed');
+                }
+            }
+
+            function stopResize() {
+                window.removeEventListener('mousemove', resize);
+                window.removeEventListener('mouseup', stopResize);
+                resizer.classList.remove('resizing');
+                sidebar.style.transition = ''; // Re-enable transition
+            }
+        }
     }
 
     function setupNavigation() {

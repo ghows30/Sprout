@@ -39,11 +39,14 @@ app.whenReady().then(() => {
 
             for (const item of items) {
                 if (item.isDirectory()) {
-                    const sessionFile = path.join(sproutPath, item.name, 'session.json');
+                    const sessionDir = path.join(sproutPath, item.name);
+                    const sessionFile = path.join(sessionDir, 'session.json');
                     if (fs.existsSync(sessionFile)) {
                         try {
                             const data = fs.readFileSync(sessionFile, 'utf8');
-                            sessions.push(JSON.parse(data));
+                            const session = JSON.parse(data);
+                            session.fullPath = sessionDir; // Add absolute path
+                            sessions.push(session);
                         } catch (e) {
                             console.error(`Error reading session in ${item.name}:`, e);
                         }
@@ -88,9 +91,7 @@ app.whenReady().then(() => {
                             const destPath = path.join(categoryDir, file.name);
                             fs.copyFileSync(file.path, destPath);
 
-                            // Store relative path or just name? 
-                            // If we store relative path (e.g. "images/foo.png"), the renderer needs to handle it.
-                            // For now, let's store the relative path so we know where it is.
+                            // Store relative path
                             processedFiles.push(path.join(subfolder, file.name));
                         } catch (err) {
                             console.error(`Failed to copy file ${file.name}:`, err);
@@ -107,6 +108,26 @@ app.whenReady().then(() => {
             fs.writeFileSync(filePath, JSON.stringify(session, null, 2));
         } catch (error) {
             console.error('Error saving session:', error);
+        }
+    });
+
+    ipcMain.handle('save-note', async (event, { sessionPath, fileName, content }) => {
+        try {
+            if (!sessionPath || !fileName) {
+                throw new Error('Missing sessionPath or fileName');
+            }
+
+            // Ensure filename ends with .txt if no extension provided
+            if (!path.extname(fileName)) {
+                fileName += '.txt';
+            }
+
+            const filePath = path.join(sessionPath, fileName);
+            fs.writeFileSync(filePath, content, 'utf8');
+            return { success: true, filePath };
+        } catch (error) {
+            console.error('Error saving note:', error);
+            return { success: false, error: error.message };
         }
     });
 });
