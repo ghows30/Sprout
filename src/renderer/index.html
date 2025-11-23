@@ -116,68 +116,32 @@
         <div id="active-session" class="view-section" style="display: none;">
             <div class="session-container">
                 <aside class="session-sidebar" id="session-sidebar">
-                    <!-- Tab Navigation -->
-                    <div class="sidebar-tabs">
-                        <button class="sidebar-tab active" data-tab="documenti">
-                            <i class="fas fa-folder-open"></i>
-                            <span>Documenti</span>
-                        </button>
-                        <button class="sidebar-tab" data-tab="timer">
-                            <i class="fas fa-clock"></i>
-                            <span>Timer</span>
-                        </button>
-                        <button class="sidebar-tab" data-tab="flashcard">
-                            <i class="fas fa-layer-group"></i>
-                            <span>Flashcard</span>
-                        </button>
+                    <!-- Documents Section -->
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-folder-open"></i> Documenti
+                        </h3>
+                        <ul id="session-file-list" class="session-file-list">
+                            <!-- Files will be injected here -->
+                        </ul>
                     </div>
 
-                    <!-- Tab Contents -->
-                    <div class="tab-contents">
-                        <!-- Documenti Tab -->
-                        <div class="tab-content active" id="tab-documenti">
-                            <ul id="session-file-list" class="session-file-list">
-                                <!-- Files will be injected here -->
-                            </ul>
+                    <!-- Flashcards Section -->
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-layer-group"></i> Flashcard
+                        </h3>
+                        <div class="flashcard-actions">
+                            <button class="btn btn-primary btn-sm" id="create-flashcard-btn">
+                                <i class="fas fa-plus"></i> Crea
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="import-flashcard-btn">
+                                <i class="fas fa-file-import"></i> Importa
+                            </button>
                         </div>
-
-                        <!-- Timer Tab -->
-                        <div class="tab-content" id="tab-timer">
-                            <div class="timer-container">
-                                <div class="timer-display" id="timer-display">25:00</div>
-                                <div class="timer-controls">
-                                    <button class="timer-btn" id="timer-start">
-                                        <i class="fas fa-play"></i>
-                                    </button>
-                                    <button class="timer-btn" id="timer-pause" style="display: none;">
-                                        <i class="fas fa-pause"></i>
-                                    </button>
-                                    <button class="timer-btn" id="timer-reset">
-                                        <i class="fas fa-redo"></i>
-                                    </button>
-                                </div>
-                                <div class="timer-presets">
-                                    <button class="preset-btn" data-minutes="25">25 min</button>
-                                    <button class="preset-btn" data-minutes="15">15 min</button>
-                                    <button class="preset-btn" data-minutes="5">5 min</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Flashcard Tab -->
-                        <div class="tab-content" id="tab-flashcard">
-                            <div class="flashcard-header">
-                                <button class="btn btn-primary btn-sm" id="create-flashcard-btn">
-                                    <i class="fas fa-plus"></i> Crea
-                                </button>
-                                <button class="btn btn-secondary btn-sm" id="import-flashcard-btn">
-                                    <i class="fas fa-file-import"></i> Importa
-                                </button>
-                            </div>
-                            <ul id="flashcard-list" class="flashcard-list">
-                                <!-- Flashcards will be injected here -->
-                            </ul>
-                        </div>
+                        <ul id="flashcard-list" class="flashcard-list">
+                            <!-- Flashcards will be injected here -->
+                        </ul>
                     </div>
                 </aside>
                 <div class="resizer-container">
@@ -189,12 +153,45 @@
                 <main class="session-main">
                     <header class="session-header">
                         <h2 id="active-session-title">Sessione</h2>
+
+                        <!-- Timer Icon/Display -->
+                        <div class="header-timer-widget" id="timer-widget">
+                            <button class="timer-icon-btn" id="timer-icon-btn">
+                                <i class="fas fa-clock"></i>
+                            </button>
+                            <span class="timer-countdown" id="timer-countdown" style="display: none;">25:00</span>
+                        </div>
+
                         <button id="save-note-btn" class="btn btn-primary">
                             <i class="fas fa-save"></i> Salva Appunti
                         </button>
                     </header>
-                    <div class="editor-container">
-                        <textarea id="session-notes" placeholder="Scrivi qui i tuoi appunti..."></textarea>
+
+                    <!-- Split View Container -->
+                    <div class="split-view-container">
+                        <!-- Notes Editor (Left) -->
+                        <div class="notes-editor">
+                            <div class="editor-container">
+                                <textarea id="session-notes" placeholder="Scrivi qui i tuoi appunti..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Resizer -->
+                        <div class="split-resizer" id="split-resizer"></div>
+
+                        <!-- Document Viewer (Right) -->
+                        <div class="document-viewer" id="document-viewer" style="display: none;">
+                            <div class="viewer-content" id="viewer-content">
+                                <div class="viewer-header">
+                                    <span id="viewer-filename">Nessun documento aperto</span>
+                                    <button id="close-viewer-btn" class="btn-icon">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <iframe id="document-iframe" style="display: none;"></iframe>
+                                <img id="document-image" style="display: none;" />
+                            </div>
+                        </div>
                     </div>
                 </main>
             </div>
@@ -221,6 +218,36 @@
             <div class="modal-actions">
                 <button id="cancel-btn" class="btn btn-secondary">Annulla</button>
                 <button id="create-session-btn" class="btn btn-primary">Crea Sessione</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer Modal -->
+    <div id="timer-modal" class="modal">
+        <div class="modal-content timer-modal-content">
+            <span class="close-modal" id="close-timer-modal">&times;</span>
+            <h2>Timer Pomodoro</h2>
+
+            <div class="timer-modal-body">
+                <div class="timer-display-large" id="timer-display">25:00</div>
+
+                <div class="timer-controls-large">
+                    <button class="timer-btn-large" id="timer-start">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="timer-btn-large" id="timer-pause" style="display: none;">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="timer-btn-large" id="timer-reset">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+
+                <div class="timer-presets-large">
+                    <button class="preset-btn-large" data-minutes="25">25 minuti</button>
+                    <button class="preset-btn-large" data-minutes="15">15 minuti</button>
+                    <button class="preset-btn-large" data-minutes="5">5 minuti</button>
+                </div>
             </div>
         </div>
     </div>

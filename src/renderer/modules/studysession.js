@@ -9,6 +9,8 @@ const StudySessionsModule = (() => {
     let timerDisplay, timerStartBtn, timerPauseBtn, timerResetBtn, presetBtns;
     let timerInterval, timerSeconds = 1500; // 25 minutes default
     let flashcardList, createFlashcardBtn, importFlashcardBtn;
+    let documentViewer, viewerPlaceholder, viewerContent, viewerFilename, closeViewerBtn, documentIframe, documentImage, splitResizer;
+    let timerModal, closeTimerModal, timerIconBtn, timerCountdown;
 
     function init() {
 
@@ -62,6 +64,22 @@ const StudySessionsModule = (() => {
         flashcardList = document.getElementById('flashcard-list');
         createFlashcardBtn = document.getElementById('create-flashcard-btn');
         importFlashcardBtn = document.getElementById('import-flashcard-btn');
+
+        // Document Viewer Elements
+        documentViewer = document.getElementById('document-viewer');
+        viewerPlaceholder = document.querySelector('.viewer-placeholder');
+        viewerContent = document.getElementById('viewer-content');
+        viewerFilename = document.getElementById('viewer-filename');
+        closeViewerBtn = document.getElementById('close-viewer-btn');
+        documentIframe = document.getElementById('document-iframe');
+        documentImage = document.getElementById('document-image');
+        splitResizer = document.getElementById('split-resizer');
+
+        // Timer Modal Elements
+        timerModal = document.getElementById('timer-modal');
+        closeTimerModal = document.getElementById('close-timer-modal');
+        timerIconBtn = document.getElementById('timer-icon-btn');
+        timerCountdown = document.getElementById('timer-countdown');
     }
 
     function bindEvents() {
@@ -95,23 +113,31 @@ const StudySessionsModule = (() => {
             saveNoteBtn.addEventListener('click', saveNote);
         }
 
-        // Tab switching
-        sidebarTabs.forEach(tab => {
-            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-        });
-
         // Timer controls
         if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
         if (timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
         if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
 
-        presetBtns.forEach(btn => {
-            btn.addEventListener('click', () => setTimerPreset(parseInt(btn.dataset.minutes)));
+        // Timer modal
+        if (timerIconBtn) timerIconBtn.addEventListener('click', openTimerModal);
+        if (closeTimerModal) closeTimerModal.addEventListener('click', closeTimerModalFn);
+
+        // Update preset buttons selector for large version
+        const presetBtnsLarge = document.querySelectorAll('.preset-btn-large');
+        presetBtnsLarge.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimerPreset(parseInt(btn.dataset.minutes));
+                closeTimerModalFn();
+            });
         });
 
         // Flashcard controls
         if (createFlashcardBtn) createFlashcardBtn.addEventListener('click', createFlashcard);
         if (importFlashcardBtn) importFlashcardBtn.addEventListener('click', importFlashcards);
+
+        // Document viewer controls
+        if (closeViewerBtn) closeViewerBtn.addEventListener('click', closeDocument);
+        initSplitResizer();
 
         // Resizer Logic
         if (sessionResizer) {
@@ -321,44 +347,85 @@ const StudySessionsModule = (() => {
             sessionTitle.textContent = session.name;
             sessionNotes.value = ''; // Clear notes or load existing if we had them
 
-            // Render files with colored icons
+            // Render files grouped by category
             sessionFileList.innerHTML = '';
             if (session.files && session.files.length > 0) {
+                // Categorize files
+                const categories = {
+                    pdf: { name: 'PDF', files: [], icon: 'fas fa-file-pdf', color: 'file-icon-pdf' },
+                    document: { name: 'Documenti', files: [], icon: 'fas fa-file-word', color: 'file-icon-doc' },
+                    image: { name: 'Immagini', files: [], icon: 'fas fa-file-image', color: 'file-icon-image' },
+                    spreadsheet: { name: 'Fogli di calcolo', files: [], icon: 'fas fa-file-excel', color: 'file-icon-excel' },
+                    presentation: { name: 'Presentazioni', files: [], icon: 'fas fa-file-powerpoint', color: 'file-icon-ppt' },
+                    text: { name: 'Testo', files: [], icon: 'fas fa-file-alt', color: 'file-icon-text' },
+                    other: { name: 'Altri', files: [], icon: 'fas fa-file', color: 'file-icon-default' }
+                };
+
+                // Group files by category
                 session.files.forEach(file => {
                     const fileName = typeof file === 'string' ? file.split('/').pop().split('\\').pop() : file.name;
                     const ext = fileName.split('.').pop().toLowerCase();
 
-                    // Determine icon and color class based on file type
-                    let iconClass = 'fas fa-file';
-                    let colorClass = 'file-icon-default';
-
                     if (ext === 'pdf') {
-                        iconClass = 'fas fa-file-pdf';
-                        colorClass = 'file-icon-pdf';
+                        categories.pdf.files.push({ file, fileName, ext });
                     } else if (['doc', 'docx'].includes(ext)) {
-                        iconClass = 'fas fa-file-word';
-                        colorClass = 'file-icon-doc';
+                        categories.document.files.push({ file, fileName, ext });
                     } else if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext)) {
-                        iconClass = 'fas fa-file-image';
-                        colorClass = 'file-icon-image';
-                    } else if (['txt', 'md'].includes(ext)) {
-                        iconClass = 'fas fa-file-alt';
-                        colorClass = 'file-icon-text';
+                        categories.image.files.push({ file, fileName, ext });
                     } else if (['xls', 'xlsx'].includes(ext)) {
-                        iconClass = 'fas fa-file-excel';
-                        colorClass = 'file-icon-excel';
+                        categories.spreadsheet.files.push({ file, fileName, ext });
                     } else if (['ppt', 'pptx'].includes(ext)) {
-                        iconClass = 'fas fa-file-powerpoint';
-                        colorClass = 'file-icon-ppt';
+                        categories.presentation.files.push({ file, fileName, ext });
+                    } else if (['txt', 'md'].includes(ext)) {
+                        categories.text.files.push({ file, fileName, ext });
+                    } else {
+                        categories.other.files.push({ file, fileName, ext });
                     }
+                });
 
-                    const li = document.createElement('li');
-                    li.className = 'session-file-item';
-                    li.innerHTML = `
-                        <i class="${iconClass} ${colorClass}"></i>
-                        <span>${fileName}</span>
-                    `;
-                    sessionFileList.appendChild(li);
+                // Render each category
+                Object.values(categories).forEach(category => {
+                    if (category.files.length > 0) {
+                        // Category header
+                        const categoryHeader = document.createElement('li');
+                        categoryHeader.className = 'file-category-header';
+                        categoryHeader.innerHTML = `
+                            <i class="fas fa-chevron-down category-chevron collapsed"></i>
+                            <i class="${category.icon} ${category.color}"></i>
+                            <span>${category.name}</span>
+                            <span class="file-count">(${category.files.length})</span>
+                        `;
+
+                        // Create container for category files (start collapsed)
+                        const categoryContainer = document.createElement('div');
+                        categoryContainer.className = 'category-files-container collapsed';
+
+                        // Category files
+                        category.files.forEach(({ file, fileName }) => {
+                            const li = document.createElement('li');
+                            li.className = 'session-file-item';
+                            li.innerHTML = `
+                                <i class="${category.icon} ${category.color}"></i>
+                                <span>${fileName}</span>
+                            `;
+
+                            // Add click handler to open document
+                            li.addEventListener('click', () => {
+                                openDocument(file, fileName);
+                            });
+
+                            categoryContainer.appendChild(li);
+                        });
+
+                        // Toggle collapse/expand on header click
+                        categoryHeader.addEventListener('click', () => {
+                            categoryContainer.classList.toggle('collapsed');
+                            categoryHeader.querySelector('.category-chevron').classList.toggle('collapsed');
+                        });
+
+                        sessionFileList.appendChild(categoryHeader);
+                        sessionFileList.appendChild(categoryContainer);
+                    }
                 });
             } else {
                 sessionFileList.innerHTML = '<li class="session-file-item" style="cursor: default;">Nessun file</li>';
@@ -400,36 +467,38 @@ const StudySessionsModule = (() => {
         }
     }
 
-    // Tab Switching
-    function switchTab(tabName) {
-        // Update tab buttons
-        sidebarTabs.forEach(tab => {
-            if (tab.dataset.tab === tabName) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
+    // Timer Modal Functions
+    function openTimerModal() {
+        if (timerModal) {
+            timerModal.style.display = 'flex';
+        }
+    }
 
-        // Update tab contents
-        tabContents.forEach(content => {
-            if (content.id === `tab-${tabName}`) {
-                content.classList.add('active');
-            } else {
-                content.classList.remove('active');
-            }
-        });
+    function closeTimerModalFn() {
+        if (timerModal) {
+            timerModal.style.display = 'none';
+        }
     }
 
     // Timer Functions
     function updateTimerDisplay() {
         const minutes = Math.floor(timerSeconds / 60);
         const seconds = timerSeconds % 60;
-        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        // Update both modal display and countdown
+        timerDisplay.textContent = timeString;
+        if (timerCountdown) {
+            timerCountdown.textContent = timeString;
+        }
     }
 
     function startTimer() {
         if (timerInterval) return; // Already running
+
+        // Hide icon, show countdown
+        if (timerIconBtn) timerIconBtn.style.display = 'none';
+        if (timerCountdown) timerCountdown.style.display = 'block';
 
         timerStartBtn.style.display = 'none';
         timerPauseBtn.style.display = 'flex';
@@ -458,12 +527,20 @@ const StudySessionsModule = (() => {
         pauseTimer();
         timerSeconds = 1500; // Reset to 25 minutes
         updateTimerDisplay();
+
+        // Show icon, hide countdown
+        if (timerIconBtn) timerIconBtn.style.display = 'flex';
+        if (timerCountdown) timerCountdown.style.display = 'none';
     }
 
     function setTimerPreset(minutes) {
         pauseTimer();
         timerSeconds = minutes * 60;
         updateTimerDisplay();
+
+        // Show icon, hide countdown
+        if (timerIconBtn) timerIconBtn.style.display = 'flex';
+        if (timerCountdown) timerCountdown.style.display = 'none';
     }
 
     // Flashcard Functions
@@ -513,6 +590,80 @@ const StudySessionsModule = (() => {
         ipcRenderer.send('save-session-data', currentSession);
 
         renderFlashcards();
+    }
+
+    // Document Viewer Functions
+    function openDocument(filePath, fileName) {
+        if (!currentSession || !filePath) return;
+
+        const ext = fileName.split('.').pop().toLowerCase();
+        const fullPath = `file://${currentSession.fullPath}/${filePath}`;
+
+        // Show document viewer
+        documentViewer.style.display = 'flex';
+
+        // Update filename in header
+        viewerFilename.textContent = fileName;
+
+        // Hide both iframe and image first
+        documentIframe.style.display = 'none';
+        documentImage.style.display = 'none';
+
+        // Show appropriate viewer based on file type
+        if (ext === 'pdf') {
+            documentIframe.src = fullPath;
+            documentIframe.style.display = 'block';
+        } else if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext)) {
+            documentImage.src = fullPath;
+            documentImage.style.display = 'block';
+        } else {
+            // For other file types, try to open in system default app
+            const { shell } = require('electron');
+            shell.openPath(fullPath.replace('file://', ''));
+        }
+    }
+
+    function closeDocument() {
+        // Hide document viewer
+        documentViewer.style.display = 'none';
+        viewerFilename.textContent = 'Nessun documento aperto';
+        documentIframe.src = '';
+        documentImage.src = '';
+        documentIframe.style.display = 'none';
+        documentImage.style.display = 'none';
+    }
+
+    function initSplitResizer() {
+        if (!splitResizer) return;
+
+        let isResizing = false;
+        const notesEditor = document.querySelector('.notes-editor');
+
+        splitResizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            splitResizer.classList.add('resizing');
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            const container = document.querySelector('.split-view-container');
+            const containerRect = container.getBoundingClientRect();
+            const newWidth = e.clientX - containerRect.left;
+
+            // Set min/max widths
+            if (newWidth > 200 && newWidth < containerRect.width - 200) {
+                notesEditor.style.flex = `0 0 ${newWidth}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                splitResizer.classList.remove('resizing');
+            }
+        });
     }
 
     function importFlashcards() {
