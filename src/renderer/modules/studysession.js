@@ -5,6 +5,10 @@ const StudySessionsModule = (() => {
     let modal, newSessionBtn, closeModalBtn, cancelBtn, createBtn, sessionNameInput, dropZone, fileList, sessionsGrid;
     let sessionView, sessionTitle, sessionFileList, sessionNotes, saveNoteBtn;
     let sessionSidebar, sessionResizer, toggleSidebarBtn;
+    let sidebarTabs, tabContents;
+    let timerDisplay, timerStartBtn, timerPauseBtn, timerResetBtn, presetBtns;
+    let timerInterval, timerSeconds = 1500; // 25 minutes default
+    let flashcardList, createFlashcardBtn, importFlashcardBtn;
 
     function init() {
 
@@ -42,6 +46,22 @@ const StudySessionsModule = (() => {
         sessionSidebar = document.getElementById('session-sidebar');
         sessionResizer = document.getElementById('session-resizer');
         toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+
+        // Tab System
+        sidebarTabs = document.querySelectorAll('.sidebar-tab');
+        tabContents = document.querySelectorAll('.tab-content');
+
+        // Timer Elements
+        timerDisplay = document.getElementById('timer-display');
+        timerStartBtn = document.getElementById('timer-start');
+        timerPauseBtn = document.getElementById('timer-pause');
+        timerResetBtn = document.getElementById('timer-reset');
+        presetBtns = document.querySelectorAll('.preset-btn');
+
+        // Flashcard Elements
+        flashcardList = document.getElementById('flashcard-list');
+        createFlashcardBtn = document.getElementById('create-flashcard-btn');
+        importFlashcardBtn = document.getElementById('import-flashcard-btn');
     }
 
     function bindEvents() {
@@ -74,6 +94,24 @@ const StudySessionsModule = (() => {
         if (saveNoteBtn) {
             saveNoteBtn.addEventListener('click', saveNote);
         }
+
+        // Tab switching
+        sidebarTabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        // Timer controls
+        if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
+        if (timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
+        if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
+
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => setTimerPreset(parseInt(btn.dataset.minutes)));
+        });
+
+        // Flashcard controls
+        if (createFlashcardBtn) createFlashcardBtn.addEventListener('click', createFlashcard);
+        if (importFlashcardBtn) importFlashcardBtn.addEventListener('click', importFlashcards);
 
         // Resizer Logic
         if (sessionResizer) {
@@ -249,15 +287,23 @@ const StudySessionsModule = (() => {
                     <div class="folder-name">${session.name}</div>
                     <div class="folder-info">${session.files.length} file</div>
                 `;
-                folder.addEventListener('click', () => {
-                    const folderEl = folder.querySelector('.folder');
-                    folderEl.classList.add('open');
 
-                    // Open session after animation
-                    setTimeout(() => {
-                        openSession(session);
-                    }, 300);
+                const folderEl = folder.querySelector('.folder');
+
+                // Hover animation
+                folder.addEventListener('mouseenter', () => {
+                    folderEl.classList.add('open');
                 });
+
+                folder.addEventListener('mouseleave', () => {
+                    folderEl.classList.remove('open');
+                });
+
+                // Click to open session
+                folder.addEventListener('click', () => {
+                    openSession(session);
+                });
+
                 sessionsGrid.appendChild(folder);
             });
         });
@@ -275,22 +321,41 @@ const StudySessionsModule = (() => {
             sessionTitle.textContent = session.name;
             sessionNotes.value = ''; // Clear notes or load existing if we had them
 
-            // Render files
+            // Render files with colored icons
             sessionFileList.innerHTML = '';
             if (session.files && session.files.length > 0) {
                 session.files.forEach(file => {
-                    // file is a relative path string in the new structure, or object?
-                    // In main.js we updated it to store relative paths as strings in session.files array
-                    // But wait, in createSession we send objects {name, path}.
-                    // In save-session in main.js, we process them and update session.files to be an array of strings (relative paths).
-                    // So when we read it back in get-sessions, session.files is an array of strings.
-
                     const fileName = typeof file === 'string' ? file.split('/').pop().split('\\').pop() : file.name;
+                    const ext = fileName.split('.').pop().toLowerCase();
+
+                    // Determine icon and color class based on file type
+                    let iconClass = 'fas fa-file';
+                    let colorClass = 'file-icon-default';
+
+                    if (ext === 'pdf') {
+                        iconClass = 'fas fa-file-pdf';
+                        colorClass = 'file-icon-pdf';
+                    } else if (['doc', 'docx'].includes(ext)) {
+                        iconClass = 'fas fa-file-word';
+                        colorClass = 'file-icon-doc';
+                    } else if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext)) {
+                        iconClass = 'fas fa-file-image';
+                        colorClass = 'file-icon-image';
+                    } else if (['txt', 'md'].includes(ext)) {
+                        iconClass = 'fas fa-file-alt';
+                        colorClass = 'file-icon-text';
+                    } else if (['xls', 'xlsx'].includes(ext)) {
+                        iconClass = 'fas fa-file-excel';
+                        colorClass = 'file-icon-excel';
+                    } else if (['ppt', 'pptx'].includes(ext)) {
+                        iconClass = 'fas fa-file-powerpoint';
+                        colorClass = 'file-icon-ppt';
+                    }
 
                     const li = document.createElement('li');
                     li.className = 'session-file-item';
                     li.innerHTML = `
-                        <i class="fas fa-file-alt"></i>
+                        <i class="${iconClass} ${colorClass}"></i>
                         <span>${fileName}</span>
                     `;
                     sessionFileList.appendChild(li);
@@ -298,6 +363,9 @@ const StudySessionsModule = (() => {
             } else {
                 sessionFileList.innerHTML = '<li class="session-file-item" style="cursor: default;">Nessun file</li>';
             }
+
+            // Render flashcards for this session
+            renderFlashcards();
         }
     }
 
@@ -330,6 +398,126 @@ const StudySessionsModule = (() => {
             console.error(error);
             alert('Errore durante il salvataggio.');
         }
+    }
+
+    // Tab Switching
+    function switchTab(tabName) {
+        // Update tab buttons
+        sidebarTabs.forEach(tab => {
+            if (tab.dataset.tab === tabName) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+
+        // Update tab contents
+        tabContents.forEach(content => {
+            if (content.id === `tab-${tabName}`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+    }
+
+    // Timer Functions
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timerSeconds / 60);
+        const seconds = timerSeconds % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+        if (timerInterval) return; // Already running
+
+        timerStartBtn.style.display = 'none';
+        timerPauseBtn.style.display = 'flex';
+
+        timerInterval = setInterval(() => {
+            if (timerSeconds > 0) {
+                timerSeconds--;
+                updateTimerDisplay();
+            } else {
+                pauseTimer();
+                alert('Timer completato!');
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerStartBtn.style.display = 'flex';
+        timerPauseBtn.style.display = 'none';
+    }
+
+    function resetTimer() {
+        pauseTimer();
+        timerSeconds = 1500; // Reset to 25 minutes
+        updateTimerDisplay();
+    }
+
+    function setTimerPreset(minutes) {
+        pauseTimer();
+        timerSeconds = minutes * 60;
+        updateTimerDisplay();
+    }
+
+    // Flashcard Functions
+    function renderFlashcards() {
+        if (!flashcardList || !currentSession) return;
+
+        const flashcards = currentSession.flashcards || [];
+        flashcardList.innerHTML = '';
+
+        if (flashcards.length === 0) {
+            flashcardList.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 20px;">Nessuna flashcard</li>';
+            return;
+        }
+
+        flashcards.forEach(card => {
+            const li = document.createElement('li');
+            li.className = 'flashcard-item';
+            li.innerHTML = `
+                <div class="flashcard-question">${card.question}</div>
+                <div class="flashcard-answer">${card.answer}</div>
+            `;
+            flashcardList.appendChild(li);
+        });
+    }
+
+    function createFlashcard() {
+        const question = prompt('Inserisci la domanda:');
+        if (!question) return;
+
+        const answer = prompt('Inserisci la risposta:');
+        if (!answer) return;
+
+        const flashcard = {
+            id: Date.now(),
+            question: question,
+            answer: answer,
+            createdAt: new Date().toISOString()
+        };
+
+        if (!currentSession.flashcards) {
+            currentSession.flashcards = [];
+        }
+        currentSession.flashcards.push(flashcard);
+
+        // Save to backend
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('save-session-data', currentSession);
+
+        renderFlashcards();
+    }
+
+    function importFlashcards() {
+        alert('Funzionalità di importazione in arrivo!');
+        // TODO: Implement file picker and JSON import
     }
 
     return {

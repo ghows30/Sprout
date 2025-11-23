@@ -116,20 +116,79 @@
         <div id="active-session" class="view-section" style="display: none;">
             <div class="session-container">
                 <aside class="session-sidebar" id="session-sidebar">
-                    <h3>Documenti</h3>
-                    <ul id="session-file-list" class="session-file-list">
-                        <!-- Files will be injected here -->
-                    </ul>
+                    <!-- Tab Navigation -->
+                    <div class="sidebar-tabs">
+                        <button class="sidebar-tab active" data-tab="documenti">
+                            <i class="fas fa-folder-open"></i>
+                            <span>Documenti</span>
+                        </button>
+                        <button class="sidebar-tab" data-tab="timer">
+                            <i class="fas fa-clock"></i>
+                            <span>Timer</span>
+                        </button>
+                        <button class="sidebar-tab" data-tab="flashcard">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Flashcard</span>
+                        </button>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div class="tab-contents">
+                        <!-- Documenti Tab -->
+                        <div class="tab-content active" id="tab-documenti">
+                            <ul id="session-file-list" class="session-file-list">
+                                <!-- Files will be injected here -->
+                            </ul>
+                        </div>
+
+                        <!-- Timer Tab -->
+                        <div class="tab-content" id="tab-timer">
+                            <div class="timer-container">
+                                <div class="timer-display" id="timer-display">25:00</div>
+                                <div class="timer-controls">
+                                    <button class="timer-btn" id="timer-start">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button class="timer-btn" id="timer-pause" style="display: none;">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                    <button class="timer-btn" id="timer-reset">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                                <div class="timer-presets">
+                                    <button class="preset-btn" data-minutes="25">25 min</button>
+                                    <button class="preset-btn" data-minutes="15">15 min</button>
+                                    <button class="preset-btn" data-minutes="5">5 min</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Flashcard Tab -->
+                        <div class="tab-content" id="tab-flashcard">
+                            <div class="flashcard-header">
+                                <button class="btn btn-primary btn-sm" id="create-flashcard-btn">
+                                    <i class="fas fa-plus"></i> Crea
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="import-flashcard-btn">
+                                    <i class="fas fa-file-import"></i> Importa
+                                </button>
+                            </div>
+                            <ul id="flashcard-list" class="flashcard-list">
+                                <!-- Flashcards will be injected here -->
+                            </ul>
+                        </div>
+                    </div>
                 </aside>
-                <div class="resizer" id="session-resizer"></div>
+                <div class="resizer-container">
+                    <button id="toggle-sidebar-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="resizer" id="session-resizer"></div>
+                </div>
                 <main class="session-main">
                     <header class="session-header">
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <button id="toggle-sidebar-btn" class="btn btn-secondary" title="Toggle Sidebar">
-                                <i class="fas fa-columns"></i>
-                            </button>
-                            <h2 id="active-session-title" style="margin: 0;">Sessione</h2>
-                        </div>
+                        <h2 id="active-session-title">Sessione</h2>
                         <button id="save-note-btn" class="btn btn-primary">
                             <i class="fas fa-save"></i> Salva Appunti
                         </button>

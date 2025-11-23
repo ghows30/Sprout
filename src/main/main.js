@@ -130,6 +130,31 @@ app.whenReady().then(() => {
             return { success: false, error: error.message };
         }
     });
+
+    ipcMain.on('save-session-data', (event, sessionData) => {
+        try {
+            const safeName = sessionData.name.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+            const sessionDir = path.join(sproutPath, safeName);
+            const filePath = path.join(sessionDir, 'session.json');
+
+            // Read existing session to preserve file paths
+            let existingSession = {};
+            if (fs.existsSync(filePath)) {
+                existingSession = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            }
+
+            // Merge with new data (preserve files array, update flashcards)
+            const updatedSession = {
+                ...existingSession,
+                ...sessionData,
+                files: existingSession.files || sessionData.files // Keep existing files
+            };
+
+            fs.writeFileSync(filePath, JSON.stringify(updatedSession, null, 2));
+        } catch (error) {
+            console.error('Error saving session data:', error);
+        }
+    });
 });
 
 app.on('window-all-closed', () => {
