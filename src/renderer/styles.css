@@ -84,6 +84,17 @@ body {
     gap: 10px;
     white-space: nowrap;
     overflow: hidden;
+    min-width: 0;
+    /* Allow flex item to shrink below content size */
+}
+
+.logo-text {
+    transition: opacity 0.1s;
+}
+
+.sidebar.collapsed .logo-text {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .btn-icon {
@@ -95,6 +106,8 @@ body {
     padding: 5px;
     border-radius: 5px;
     transition: color 0.2s, background-color 0.2s;
+    flex-shrink: 0;
+    /* Prevent button from shrinking */
 }
 
 .btn-icon:hover {
@@ -105,10 +118,32 @@ body {
 .nav-links {
     list-style: none;
     flex-grow: 1;
+    overflow-x: hidden;
+    /* Hide scrollbar if it appears during resize */
+    position: relative;
+    /* For absolute positioning of highlight */
+}
+
+.nav-highlight {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 0;
+    /* Will be set by JS */
+    width: 100%;
+    background-color: rgba(93, 155, 121, 0.15);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* Smooth ease-out back */
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
 }
 
 .nav-item {
     margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 .nav-link {
@@ -118,15 +153,26 @@ body {
     color: var(--text-muted);
     text-decoration: none;
     border-radius: 12px;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
+    /* Only animate color */
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    /* Add ellipsis for text */
+}
+
+.link-text {
+    transition: opacity 0.1s;
+}
+
+.sidebar.collapsed .link-text {
+    opacity: 0;
 }
 
 .nav-link:hover,
 .nav-link.active {
-    background-color: rgba(93, 155, 121, 0.15);
+    /* background-color: removed; handled by highlight */
     color: var(--primary-light);
 }
 

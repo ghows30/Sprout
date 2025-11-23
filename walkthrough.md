@@ -1,31 +1,32 @@
-# Walkthrough: Main Sidebar Improvements
+# Walkthrough: Pill Navigation Sidebar
 
-Ho migliorato la sidebar principale dell'applicazione rendendola ridimensionabile e collassabile.
+Ho implementato un'animazione "Pill Nav" per la sidebar principale, ispirata al design di ReactBits.
 
 ## Funzionalità Aggiunte
 
-1.  **Ridimensionamento (Resize)**:
-    - È presente una sottile barra invisibile (che si illumina al passaggio del mouse) sul bordo destro della sidebar principale.
-    - Clicca e trascina per allargare o stringere la sidebar.
+1.  **Indicatore Animato (Pill)**:
+    - Uno sfondo arrotondato che si sposta fluidamente tra i link della navigazione.
+    - Si posiziona automaticamente sul link attivo.
+    - Si anima quando cambi sezione.
 
-2.  **Modalità Mini (Toggle)**:
-    - Aggiunto un pulsante (icona hamburger) accanto al logo "Sprout".
-    - Cliccando, la sidebar si riduce a una larghezza minima, mostrando solo le icone.
-    - Cliccando di nuovo, la sidebar torna alla dimensione originale.
+2.  **Transizioni Fluide**:
+    - L'indicatore si sposta con un'animazione smooth quando clicchi su un link diverso.
+    - Si adatta automaticamente quando ridimensioni o collassi la sidebar.
 
 ## Modifiche Tecniche
 
 - **`index.html`**:
-    - Aggiunto `id="main-sidebar"` alla sidebar.
-    - Aggiunto pulsante toggle e span per testi (per nasconderli in modalità mini).
-    - Aggiunto `div#main-resizer` dopo la sidebar.
+    - Aggiunto `<div class="nav-highlight"></div>` dentro `.nav-links`.
 - **`styles.css`**:
-    - Aggiunti stili per `.sidebar.collapsed` (width: 80px, nasconde testi).
-    - Aggiornati stili per gestire il layout flessibile.
+    - Creato stile per `.nav-highlight` con posizione assoluta e transizione smooth.
+    - Rimosso il background statico dai link (ora gestito dalla pillola).
 - **`app.js`**:
-    - Aggiunta funzione `setupSidebar()` per gestire eventi di resize e toggle.
+    - Implementata funzione `updateHighlight()` che calcola e aggiorna la posizione della pillola.
+    - Aggiornamenti automatici su: click, resize sidebar, toggle sidebar.
 
 ## Come Testare
 
-1.  **Resize**: Posiziona il mouse sul bordo destro della sidebar verde scuro. Il cursore cambierà. Trascina per ridimensionare.
-2.  **Toggle**: Clicca sull'icona con tre linee (hamburger) accanto alla scritta "Sprout". La sidebar si ridurrà mostrando solo le icone.
+1.  Avvia l'app: `npm start`
+2.  Osserva la pillola verde chiaro dietro "Home".
+3.  Clicca su "Spazi di Studio" o "Impostazioni" - la pillola dovrebbe scorrere fluidamente verso il nuovo link.
+4.  Ridimensiona o collassa la sidebar - la pillola si adatta automaticamente.
