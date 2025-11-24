@@ -52,6 +52,12 @@ class ActiveSessionView {
                     <header class="session-header">
                         <h2 id="active-session-title">Sessione</h2>
 
+                        <!-- Auto-save status indicator -->
+                        <div class="auto-save-status" id="auto-save-status" style="display: none;">
+                            <i class="fas fa-check-circle" style="color: var(--success); margin-right: 5px;"></i>
+                            <span id="auto-save-text">Salvato</span>
+                        </div>
+
                         <!-- Timer Icon/Display -->
                         <div class="header-timer-widget" id="timer-widget">
                             <button class="timer-icon-btn" id="timer-icon-btn">
@@ -59,10 +65,6 @@ class ActiveSessionView {
                             </button>
                             <span class="timer-countdown" id="timer-countdown" style="display: none;">25:00</span>
                         </div>
-
-                        <button id="save-note-btn" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Salva Appunti
-                        </button>
                     </header>
 
                     <!-- Split View Container -->
@@ -111,16 +113,19 @@ class ActiveSessionView {
         this.sessionTitle = document.getElementById('active-session-title');
         this.sessionFileList = document.getElementById('session-file-list');
         this.sessionNotes = document.getElementById('session-notes');
-        this.saveNoteBtn = document.getElementById('save-note-btn');
+        this.autoSaveStatus = document.getElementById('auto-save-status');
+        this.autoSaveText = document.getElementById('auto-save-text');
         this.sessionSidebar = document.getElementById('session-sidebar');
         this.sessionResizer = document.getElementById('session-resizer');
         this.toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
         this.addDocumentBtn = document.getElementById('add-document-btn');
+        this.autoSaveTimeout = null;
     }
 
     bindEvents() {
-        if (this.saveNoteBtn) {
-            this.saveNoteBtn.addEventListener('click', () => this.handleSaveNote());
+        // Salva automaticamente quando l'utente scrive (con ritardo di 2 secondi)
+        if (this.sessionNotes) {
+            this.sessionNotes.addEventListener('input', () => this.handleAutoSave());
         }
 
         if (this.sessionResizer) {
@@ -161,26 +166,40 @@ class ActiveSessionView {
         }
     }
 
-    async handleSaveNote() {
-        const content = this.sessionNotes.value;
-        if (!content.trim()) {
-            alert('La nota è vuota.');
-            return;
+    handleAutoSave() {
+        // Cancella il timer precedente
+        if (this.autoSaveTimeout) {
+            clearTimeout(this.autoSaveTimeout);
         }
-        const fileName = prompt('Inserisci il nome del file (es. appunti.txt):', 'appunti.txt');
-        if (!fileName) return;
 
-        await this.controller.saveNote(content, fileName);
+        // Imposta un nuovo timer di 2 secondi
+        this.autoSaveTimeout = setTimeout(async () => {
+            const content = this.sessionNotes.value;
+            const result = await this.controller.autoSaveNote(content);
+
+            if (result.success && this.autoSaveStatus && this.autoSaveText) {
+                this.autoSaveStatus.style.display = 'flex';
+                this.autoSaveText.textContent = `Salvato alle ${result.timestamp}`;
+            }
+        }, 2000);
     }
 
-    render(session) {
-        // Ensure DOM is cached
+    async render(session) {
+        // Assicurati che il DOM sia caricato
         if (!this.sessionTitle) this.cacheDOM();
 
         if (!this.sessionTitle) return;
 
         this.sessionTitle.textContent = session.name;
-        this.sessionNotes.value = ''; // Reset notes
+
+        // Carica gli appunti esistenti
+        const notesResult = await this.controller.loadNotes();
+        if (notesResult.success) {
+            this.sessionNotes.value = notesResult.content;
+        } else {
+            this.sessionNotes.value = '';
+        }
+
         this.renderFileList(session.files);
     }
 

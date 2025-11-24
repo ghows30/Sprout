@@ -71,6 +71,34 @@
                 </div>
             </div>
         </div>
+
+        <!-- Timer Modal -->
+        <div id="timer-modal" class="modal">
+            <div class="modal-content timer-modal-content">
+                <span class="close-modal" id="close-timer-modal">&times;</span>
+                <h2>Timer Pomodoro</h2>
+                <div class="timer-modal-body">
+                    <div class="timer-display-large" id="timer-display">25:00</div>
+                    <div class="timer-controls-large">
+                        <button id="timer-start" class="timer-btn-large">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button id="timer-pause" class="timer-btn-large" style="display: none;">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button id="timer-reset" class="timer-btn-large">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                    <div class="timer-presets-large">
+                        <button class="preset-btn-large" data-minutes="5">5 min</button>
+                        <button class="preset-btn-large" data-minutes="15">15 min</button>
+                        <button class="preset-btn-large" data-minutes="25">25 min</button>
+                        <button class="preset-btn-large" data-minutes="45">45 min</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Notification Container -->

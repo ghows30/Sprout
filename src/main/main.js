@@ -117,7 +117,7 @@ app.whenReady().then(() => {
                 throw new Error('Missing sessionPath or fileName');
             }
 
-            // Ensure filename ends with .txt if no extension provided
+            // Aggiungi .txt se il file non ha estensione
             if (!path.extname(fileName)) {
                 fileName += '.txt';
             }
@@ -127,6 +127,42 @@ app.whenReady().then(() => {
             return { success: true, filePath };
         } catch (error) {
             console.error('Error saving note:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Salva automaticamente in 'appunti.txt'
+    ipcMain.handle('auto-save-notes', async (event, { sessionPath, content }) => {
+        try {
+            if (!sessionPath) {
+                throw new Error('Missing sessionPath');
+            }
+
+            const filePath = path.join(sessionPath, 'appunti.txt');
+            fs.writeFileSync(filePath, content, 'utf8');
+            return { success: true, timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) };
+        } catch (error) {
+            console.error('Error auto-saving note:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Carica gli appunti da 'appunti.txt' se esiste
+    ipcMain.handle('load-notes', async (event, { sessionPath }) => {
+        try {
+            if (!sessionPath) {
+                throw new Error('Missing sessionPath');
+            }
+
+            const filePath = path.join(sessionPath, 'appunti.txt');
+            if (fs.existsSync(filePath)) {
+                const content = fs.readFileSync(filePath, 'utf8');
+                return { success: true, content };
+            } else {
+                return { success: true, content: '' };
+            }
+        } catch (error) {
+            console.error('Error loading notes:', error);
             return { success: false, error: error.message };
         }
     });

@@ -22,6 +22,23 @@ class SessionModel {
         });
     }
 
+    async autoSaveNotes(content) {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('auto-save-notes', {
+            sessionPath: this.currentSession.fullPath,
+            content: content
+        });
+    }
+
+    async loadNotes() {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('load-notes', {
+            sessionPath: this.currentSession.fullPath
+        });
+    }
+
     async addFilesToSession() {
         if (!this.currentSession) throw new Error('No active session');
 

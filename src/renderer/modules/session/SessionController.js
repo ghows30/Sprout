@@ -77,6 +77,26 @@ class SessionController {
         }
     }
 
+    async autoSaveNote(content) {
+        try {
+            const result = await this.model.autoSaveNotes(content);
+            return result;
+        } catch (error) {
+            console.error('Auto-save error:', error);
+            return { success: false };
+        }
+    }
+
+    async loadNotes() {
+        try {
+            const result = await this.model.loadNotes();
+            return result;
+        } catch (error) {
+            console.error('Load notes error:', error);
+            return { success: false, content: '' };
+        }
+    }
+
     async addDocuments() {
         if (typeof toastManager === 'undefined') {
             console.error('ToastManager not found');
