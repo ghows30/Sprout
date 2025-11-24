@@ -46,6 +46,11 @@ app.whenReady().then(() => {
                             const data = fs.readFileSync(sessionFile, 'utf8');
                             const session = JSON.parse(data);
                             session.fullPath = sessionDir; // Add absolute path
+
+                            // Add lastModified from file stats
+                            const stats = fs.statSync(sessionFile);
+                            session.lastModified = stats.mtime.toISOString();
+
                             sessions.push(session);
                         } catch (e) {
                             console.error(`Error reading session in ${item.name}:`, e);
@@ -103,6 +108,7 @@ app.whenReady().then(() => {
                 }
             }
             session.files = processedFiles;
+            session.lastModified = new Date().toISOString();
 
             const filePath = path.join(sessionDir, 'session.json');
             fs.writeFileSync(filePath, JSON.stringify(session, null, 2));
@@ -140,6 +146,15 @@ app.whenReady().then(() => {
 
             const filePath = path.join(sessionPath, 'appunti.txt');
             fs.writeFileSync(filePath, content, 'utf8');
+
+            // Update lastModified in session.json
+            const sessionFile = path.join(sessionPath, 'session.json');
+            if (fs.existsSync(sessionFile)) {
+                const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
+                session.lastModified = new Date().toISOString();
+                fs.writeFileSync(sessionFile, JSON.stringify(session, null, 2));
+            }
+
             return { success: true, timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) };
         } catch (error) {
             console.error('Error auto-saving note:', error);
@@ -183,7 +198,8 @@ app.whenReady().then(() => {
             const updatedSession = {
                 ...existingSession,
                 ...sessionData,
-                files: existingSession.files || sessionData.files // Keep existing files
+                files: existingSession.files || sessionData.files, // Keep existing files
+                lastModified: new Date().toISOString()
             };
 
             fs.writeFileSync(filePath, JSON.stringify(updatedSession, null, 2));
