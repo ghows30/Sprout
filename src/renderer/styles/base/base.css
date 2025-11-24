@@ -1,0 +1,43 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+/* File type colors */
+.file-icon-pdf {
+    color: #e74c3c;
+}
+
+.file-icon-doc {
+    color: #3498db;
+}
+
+.file-icon-image {
+    color: #9b59b6;
+}
+
+.file-icon-text {
+    color: #95a5a6;
+}
+
+.file-icon-excel {
+    color: #27ae60;
+}
+
+.file-icon-ppt {
+    color: #e67e22;
+}
+
+.file-icon-default {
+    color: var(--text-muted);
+}

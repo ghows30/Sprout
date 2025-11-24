@@ -2,6 +2,9 @@ class TimerView {
     constructor() {
         this.timerSeconds = 1500; // 25 minutes default
         this.timerInterval = null;
+    }
+
+    init() {
         this.cacheDOM();
         this.bindEvents();
     }

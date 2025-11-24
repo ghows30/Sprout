@@ -1,0 +1,70 @@
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-light);
+}
+
+.drop-zone {
+    border: 2px dashed rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.drop-zone.highlight {
+    border-color: var(--primary-light);
+    background-color: rgba(93, 155, 121, 0.05);
+}
+
+.drop-zone i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--primary-light);
+}
+
+.file-list {
+    margin-top: 10px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: var(--bg-color);
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.file-item i:first-child {
+    margin-right: 10px;
+    color: var(--primary-light);
+}
+
+.file-item .remove-file {
+    margin-left: auto;
+    cursor: pointer;
+    color: #e74c3c;
+}

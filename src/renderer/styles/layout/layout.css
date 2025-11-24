@@ -1,0 +1,35 @@
+/* Main Content */
+.content {
+    flex-grow: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+header {
+    margin-bottom: 40px;
+}
+
+h1 {
+    font-size: 2rem;
+    color: var(--primary-dark);
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: var(--text-muted);
+}
+
+/* Section Headers */
+h2 {
+    font-size: 1.2rem;
+    color: var(--primary-dark);
+    margin-bottom: 20px;
+}
+
+/* Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}

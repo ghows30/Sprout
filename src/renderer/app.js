@@ -1,14 +1,19 @@
 const App = (() => {
+    let homeModule;
+    let sessionController;
+    let navLinks;
+    let highlight;
+
     function init() {
-        // Initialize Core
-        // EventManager is already initialized as a singleton in its file
-
         // Initialize Modules
-        const homeModule = new HomeModule();
-        const sessionController = new SessionController();
+        homeModule = new HomeModule();
+        sessionController = new SessionController();
 
-        setupNavigation();
         setupSidebar();
+        setupNavigation();
+
+        // Initial render
+        showView('home');
     }
 
     function setupSidebar() {
@@ -19,12 +24,10 @@ const App = (() => {
         if (toggleBtn && sidebar) {
             toggleBtn.addEventListener('click', () => {
                 sidebar.classList.toggle('collapsed');
-                if (App.updateHighlight) {
-                    setTimeout(() => {
-                        const activeLink = document.querySelector('.nav-link.active');
-                        if (activeLink) App.updateHighlight(activeLink);
-                    }, 50);
-                }
+                setTimeout(() => {
+                    const activeLink = document.querySelector('.nav-link.active');
+                    if (activeLink) updateHighlight(activeLink);
+                }, 50);
             });
         }
 
@@ -71,40 +74,75 @@ const App = (() => {
                 resizer.classList.remove('resizing');
                 sidebar.style.transition = '';
                 if (animationFrame) cancelAnimationFrame(animationFrame);
-                if (App.updateHighlight) {
-                    setTimeout(() => {
-                        const activeLink = document.querySelector('.nav-link.active');
-                        if (activeLink) App.updateHighlight(activeLink);
-                    }, 50);
-                }
+                setTimeout(() => {
+                    const activeLink = document.querySelector('.nav-link.active');
+                    if (activeLink) updateHighlight(activeLink);
+                }, 50);
             }
         }
     }
 
-    function setupNavigation() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        const views = document.querySelectorAll('.view-section');
-        const highlight = document.querySelector('.nav-highlight');
+    function renderView(viewId) {
+        const contentContainer = document.getElementById('app-content');
+        if (!contentContainer) return;
 
-        function updateHighlight(targetLink) {
-            if (!targetLink || !highlight) return;
-            const parent = targetLink.closest('.nav-links');
-            if (!parent) return;
-            const parentRect = parent.getBoundingClientRect();
-            const linkRect = targetLink.getBoundingClientRect();
-            const top = linkRect.top - parentRect.top;
-            const height = linkRect.height;
-            highlight.style.top = `${top}px`;
-            highlight.style.height = `${height}px`;
-            highlight.style.opacity = '1';
+        contentContainer.innerHTML = ''; // Clear current content
+
+        switch (viewId) {
+            case 'home':
+                contentContainer.innerHTML = homeModule.getTemplate();
+                homeModule.init();
+                break;
+            case 'study-spaces':
+                contentContainer.innerHTML = sessionController.listView.getTemplate();
+                sessionController.listView.init();
+                sessionController.loadSessions(); // Reload sessions
+                break;
+            case 'settings':
+                contentContainer.innerHTML = `
+                    <div id="settings" class="view-section">
+                        <header>
+                            <h1>Impostazioni</h1>
+                            <p class="subtitle">Gestisci le tue preferenze.</p>
+                        </header>
+                        <p>Work in progress...</p>
+                    </div>`;
+                break;
+            case 'active-session':
+                contentContainer.innerHTML = sessionController.activeView.getTemplate();
+
+                // Initialize all active session views (activeView, documentView, flashcardView, timerView)
+                sessionController.initActiveSessionViews();
+
+                // We need to re-render the current session data
+                const currentSession = sessionController.model.getCurrentSession();
+                if (currentSession) {
+                    sessionController.activeView.render(currentSession);
+                    sessionController.flashcardView.render(currentSession.flashcards);
+                }
+                break;
         }
+    }
 
-        function showView(viewId) {
-            views.forEach(view => view.style.display = 'none');
-            const targetView = document.getElementById(viewId);
-            if (targetView) {
-                targetView.style.display = 'block';
-            }
+    function updateHighlight(targetLink) {
+        if (!targetLink || !highlight) return;
+        const parent = targetLink.closest('.nav-links');
+        if (!parent) return;
+        const parentRect = parent.getBoundingClientRect();
+        const linkRect = targetLink.getBoundingClientRect();
+        const top = linkRect.top - parentRect.top;
+        const height = linkRect.height;
+        highlight.style.top = `${top}px`;
+        highlight.style.height = `${height}px`;
+        highlight.style.opacity = '1';
+    }
+
+    function showView(viewId) {
+        // Render the view content
+        renderView(viewId);
+
+        // Update navigation state
+        if (navLinks) {
             navLinks.forEach(link => {
                 link.classList.remove('active');
                 if (link.dataset.view === viewId) {
@@ -113,6 +151,11 @@ const App = (() => {
                 }
             });
         }
+    }
+
+    function setupNavigation() {
+        navLinks = document.querySelectorAll('.nav-link');
+        highlight = document.querySelector('.nav-highlight');
 
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
@@ -145,9 +188,6 @@ const App = (() => {
             }, 100);
         });
 
-        App.showView = showView;
-        App.updateHighlight = updateHighlight;
-
         // Subscribe to session creation to switch view
         if (typeof eventManager !== 'undefined') {
             eventManager.subscribe('SESSION_CREATED', () => {
@@ -158,8 +198,7 @@ const App = (() => {
 
     return {
         init,
-        updateHighlight: null, // Will be assigned in setupNavigation
-        showView: null
+        showView
     };
 })();
 

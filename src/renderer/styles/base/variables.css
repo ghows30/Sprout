@@ -1,0 +1,27 @@
+:root {
+    /* Whispering Thicket Color Palette */
+    --primary-dark: #395648;
+    /* Very Dark Green */
+    --primary-medium: #406446;
+    /* Dark Green */
+    --primary-light: #588157;
+    /* Medium Green */
+    --accent-color: #9ead85;
+    /* Light Sage Green */
+    --bg-color: #e5e3dc;
+    /* Light Beige */
+    --sidebar-bg: #395648;
+    /* Very Dark Green */
+
+    --text-main: #395648;
+    /* Very Dark Green for text */
+    --text-light: #e5e3dc;
+    /* Light Beige for light text */
+    --text-muted: #9ead85;
+    /* Light Sage for muted text */
+
+    --card-bg: #ffffff;
+
+    --shadow-sm: 0 2px 4px rgba(57, 86, 72, 0.1);
+    --shadow-md: 0 4px 6px rgba(57, 86, 72, 0.15);
+}

@@ -2,24 +2,52 @@ class SessionListView {
     constructor(controller) {
         this.controller = controller;
         this.uploadedFiles = [];
-        this.cacheDOM();
-        this.bindEvents();
+
+        // Initialize modal logic immediately as it is global
+        this.initModal();
     }
 
-    cacheDOM() {
-        this.sessionsGrid = document.getElementById('sessions-grid');
+    getTemplate() {
+        return `
+        <div id="study-spaces" class="view-section">
+            <header>
+                <h1>Spazi di Studio</h1>
+                <p class="subtitle">Le tue sessioni organizzate.</p>
+            </header>
+            <div class="grid" id="sessions-grid">
+                <!-- Folders will be injected here -->
+            </div>
+        </div>
+        `;
+    }
+
+    init() {
+        this.cacheViewDOM();
+        // No specific view events to bind for now other than grid interactions handled in render
+    }
+
+    initModal() {
         this.modal = document.getElementById('new-session-modal');
-        this.newSessionBtn = document.getElementById('new-session-btn');
-        this.closeModalBtn = document.querySelector('.close-modal');
+        this.closeModalBtn = document.querySelector('#new-session-modal .close-modal');
         this.cancelBtn = document.getElementById('cancel-btn');
         this.createBtn = document.getElementById('create-session-btn');
         this.sessionNameInput = document.getElementById('session-name');
         this.dropZone = document.getElementById('drop-zone');
         this.fileList = document.getElementById('file-list');
+
+        this.bindModalEvents();
     }
 
-    bindEvents() {
-        if (this.newSessionBtn) this.newSessionBtn.addEventListener('click', () => this.openModal());
+    cacheViewDOM() {
+        this.sessionsGrid = document.getElementById('sessions-grid');
+    }
+
+    // The original cacheDOM and bindEvents methods are no longer needed in their previous form
+    // as their responsibilities are split into initModal, cacheViewDOM, and bindModalEvents.
+    // Keeping them empty or removing them based on the user's provided structure.
+    // The user's instruction implies replacing the old structure with the new one.
+
+    bindModalEvents() {
         if (this.closeModalBtn) this.closeModalBtn.addEventListener('click', () => this.closeModal());
         if (this.cancelBtn) this.cancelBtn.addEventListener('click', () => this.closeModal());
 
@@ -46,6 +74,11 @@ class SessionListView {
             });
 
             this.dropZone.addEventListener('drop', (e) => this.handleDrop(e), false);
+        }
+
+        // Listen for global event to open modal
+        if (typeof eventManager !== 'undefined') {
+            eventManager.subscribe('OPEN_NEW_SESSION_MODAL', () => this.openModal());
         }
     }
 
@@ -86,6 +119,7 @@ class SessionListView {
     }
 
     openModal() {
+        if (!this.modal) return;
         this.modal.style.display = 'flex';
         this.sessionNameInput.value = '';
         this.uploadedFiles = [];
@@ -94,6 +128,7 @@ class SessionListView {
     }
 
     closeModal() {
+        if (!this.modal) return;
         this.modal.style.display = 'none';
     }
 
@@ -108,6 +143,9 @@ class SessionListView {
     }
 
     render(sessions) {
+        // Ensure DOM is cached if not already (e.g. first render)
+        if (!this.sessionsGrid) this.cacheViewDOM();
+
         if (!this.sessionsGrid) return;
         this.sessionsGrid.innerHTML = '';
 

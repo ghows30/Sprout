@@ -1,6 +1,9 @@
 class FlashcardView {
     constructor(controller) {
         this.controller = controller;
+    }
+
+    init() {
         this.cacheDOM();
         this.bindEvents();
     }

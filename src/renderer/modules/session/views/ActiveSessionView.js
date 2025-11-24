@@ -1,6 +1,107 @@
 class ActiveSessionView {
     constructor(controller) {
         this.controller = controller;
+        // No immediate DOM caching, wait for render
+    }
+
+    getTemplate() {
+        return `
+        <div id="active-session" class="view-section">
+            <div class="session-container">
+                <aside class="session-sidebar" id="session-sidebar">
+                    <!-- Documents Section -->
+                    <div class="sidebar-section">
+                        <div class="section-title-row">
+                            <h3 class="section-title">
+                                <i class="fas fa-folder-open"></i> Documenti
+                            </h3>
+                            <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <ul id="session-file-list" class="session-file-list">
+                            <!-- Files will be injected here -->
+                        </ul>
+                    </div>
+
+                    <!-- Flashcards Section -->
+                    <div class="sidebar-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-layer-group"></i> Flashcard
+                        </h3>
+                        <div class="flashcard-actions">
+                            <button class="btn btn-primary btn-sm" id="create-flashcard-btn">
+                                <i class="fas fa-plus"></i> Crea
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="import-flashcard-btn">
+                                <i class="fas fa-file-import"></i> Importa
+                            </button>
+                        </div>
+                        <ul id="flashcard-list" class="flashcard-list">
+                            <!-- Flashcards will be injected here -->
+                        </ul>
+                    </div>
+                </aside>
+                <div class="resizer-container">
+                    <button id="toggle-sidebar-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="resizer" id="session-resizer"></div>
+                </div>
+                <main class="session-main">
+                    <header class="session-header">
+                        <h2 id="active-session-title">Sessione</h2>
+
+                        <!-- Timer Icon/Display -->
+                        <div class="header-timer-widget" id="timer-widget">
+                            <button class="timer-icon-btn" id="timer-icon-btn">
+                                <i class="fas fa-clock"></i>
+                            </button>
+                            <span class="timer-countdown" id="timer-countdown" style="display: none;">25:00</span>
+                        </div>
+
+                        <button id="save-note-btn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Salva Appunti
+                        </button>
+                    </header>
+
+                    <!-- Split View Container -->
+                    <div class="split-view-container">
+                        <!-- Notes Editor (Left) -->
+                        <div class="notes-editor">
+                            <div class="notes-header">
+                                <i class="fas fa-pen-fancy" style="margin-right: 10px; color: var(--primary-light);"></i>
+                                Appunti
+                            </div>
+                            <div class="editor-container">
+                                <textarea id="session-notes" placeholder="Scrivi qui i tuoi appunti..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Resizer -->
+                        <div class="split-resizer" id="split-resizer"></div>
+
+                        <!-- Document Viewer (Right) -->
+                        <div class="document-viewer" id="document-viewer" style="display: none;">
+                            <div class="viewer-content" id="viewer-content">
+                                <div class="viewer-header">
+                                    <span id="viewer-filename">Nessun documento aperto</span>
+                                    <button id="close-viewer-btn" class="btn-icon">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <iframe id="document-iframe" style="display: none;"></iframe>
+                                <img id="document-image" style="display: none;" />
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        `;
+    }
+
+    init() {
         this.cacheDOM();
         this.bindEvents();
     }
@@ -73,12 +174,18 @@ class ActiveSessionView {
     }
 
     render(session) {
+        // Ensure DOM is cached
+        if (!this.sessionTitle) this.cacheDOM();
+
+        if (!this.sessionTitle) return;
+
         this.sessionTitle.textContent = session.name;
         this.sessionNotes.value = ''; // Reset notes
         this.renderFileList(session.files);
     }
 
     renderFileList(files) {
+        if (!this.sessionFileList) return;
         this.sessionFileList.innerHTML = '';
         if (files && files.length > 0) {
             const categories = this.categorizeFiles(files);

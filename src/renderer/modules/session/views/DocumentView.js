@@ -1,5 +1,9 @@
 class DocumentView {
     constructor() {
+        // Initialization handled via init() method
+    }
+
+    init() {
         this.cacheDOM();
         this.bindEvents();
     }

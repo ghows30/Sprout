@@ -46,20 +46,19 @@ class SessionController {
     openSession(session) {
         this.model.setCurrentSession(session);
 
-        // Switch view (handled by App navigation usually, but we need to trigger it)
-        // For now, let's assume App handles the high-level view switching, 
-        // but we need to populate the active session view.
-
-        this.activeView.render(session);
-        this.flashcardView.render(session.flashcards);
-
-        // Trigger navigation to active-session view
-        // This is a bit of a dependency on App structure, but acceptable for now
-        const activeSessionView = document.getElementById('active-session');
-        if (activeSessionView) {
-            document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
-            activeSessionView.style.display = 'block';
+        // Switch view using App navigation
+        if (typeof App !== 'undefined' && App.showView) {
+            App.showView('active-session');
+        } else {
+            console.error('App.showView is not defined');
         }
+    }
+
+    initActiveSessionViews() {
+        this.activeView.init();
+        this.documentView.init();
+        this.flashcardView.init();
+        this.timerView.init();
     }
 
     async saveNote(content, fileName) {

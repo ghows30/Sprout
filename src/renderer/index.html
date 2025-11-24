@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 
 <body>
@@ -42,216 +42,32 @@
     </nav>
     <div class="resizer" id="main-resizer"></div>
 
-    <main class="content">
-        <!-- Home View -->
-        <div id="home" class="view-section">
-            <header>
-                <h1>Dashboard</h1>
-                <p class="subtitle">I tuoi appunti e documenti.</p>
-            </header>
-
-            <section>
-                <h2>Accesso Rapido</h2>
-                <div class="grid">
-                    <div class="card" id="new-session-btn">
-                        <div class="card-icon">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <h3>Nuova Sessione</h3>
-                        <p>Crea una nuova sessione di studio.</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">
-                            <i class="fas fa-file-import"></i>
-                        </div>
-                        <h3>Importa PDF</h3>
-                        <p>Carica slide o documenti da studiare.</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3>Recenti</h3>
-                        <p>Riprendi da dove avevi lasciato.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <h2>Recenti</h2>
-                <div class="grid">
-                    <div class="card">
-                        <div class="card-icon"
-                            style="background-color: rgba(236, 240, 241, 0.5); color: var(--text-main);">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <h3>Analisi Matematica</h3>
-                        <p>Ultima modifica: 2 ore fa</p>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- Study Spaces View -->
-        <div id="study-spaces" class="view-section" style="display: none;">
-            <header>
-                <h1>Spazi di Studio</h1>
-                <p class="subtitle">Le tue sessioni organizzate.</p>
-            </header>
-            <div class="grid" id="sessions-grid">
-                <!-- Folders will be injected here -->
-            </div>
-        </div>
-
-        <!-- Settings View -->
-        <div id="settings" class="view-section" style="display: none;">
-            <header>
-                <h1>Impostazioni</h1>
-                <p class="subtitle">Gestisci le tue preferenze.</p>
-            </header>
-            <p>Work in progress...</p>
-        </div>
-
-        <!-- Active Session View -->
-        <div id="active-session" class="view-section" style="display: none;">
-            <div class="session-container">
-                <aside class="session-sidebar" id="session-sidebar">
-                    <!-- Documents Section -->
-                    <div class="sidebar-section">
-                        <div class="section-title-row">
-                            <h3 class="section-title">
-                                <i class="fas fa-folder-open"></i> Documenti
-                            </h3>
-                            <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <ul id="session-file-list" class="session-file-list">
-                            <!-- Files will be injected here -->
-                        </ul>
-                    </div>
-
-                    <!-- Flashcards Section -->
-                    <div class="sidebar-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-layer-group"></i> Flashcard
-                        </h3>
-                        <div class="flashcard-actions">
-                            <button class="btn btn-primary btn-sm" id="create-flashcard-btn">
-                                <i class="fas fa-plus"></i> Crea
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="import-flashcard-btn">
-                                <i class="fas fa-file-import"></i> Importa
-                            </button>
-                        </div>
-                        <ul id="flashcard-list" class="flashcard-list">
-                            <!-- Flashcards will be injected here -->
-                        </ul>
-                    </div>
-                </aside>
-                <div class="resizer-container">
-                    <button id="toggle-sidebar-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="resizer" id="session-resizer"></div>
-                </div>
-                <main class="session-main">
-                    <header class="session-header">
-                        <h2 id="active-session-title">Sessione</h2>
-
-                        <!-- Timer Icon/Display -->
-                        <div class="header-timer-widget" id="timer-widget">
-                            <button class="timer-icon-btn" id="timer-icon-btn">
-                                <i class="fas fa-clock"></i>
-                            </button>
-                            <span class="timer-countdown" id="timer-countdown" style="display: none;">25:00</span>
-                        </div>
-
-                        <button id="save-note-btn" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Salva Appunti
-                        </button>
-                    </header>
-
-                    <!-- Split View Container -->
-                    <div class="split-view-container">
-                        <!-- Notes Editor (Left) -->
-                        <div class="notes-editor">
-                            <div class="editor-container">
-                                <textarea id="session-notes" placeholder="Scrivi qui i tuoi appunti..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Resizer -->
-                        <div class="split-resizer" id="split-resizer"></div>
-
-                        <!-- Document Viewer (Right) -->
-                        <div class="document-viewer" id="document-viewer" style="display: none;">
-                            <div class="viewer-content" id="viewer-content">
-                                <div class="viewer-header">
-                                    <span id="viewer-filename">Nessun documento aperto</span>
-                                    <button id="close-viewer-btn" class="btn-icon">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <iframe id="document-iframe" style="display: none;"></iframe>
-                                <img id="document-image" style="display: none;" />
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-        </div>
+    <main class="content" id="app-content">
+        <!-- Views will be injected here -->
     </main>
 
-    <!-- New Session Modal -->
-    <div id="new-session-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Nuova Sessione</h2>
-            <div class="form-group">
-                <label for="session-name">Nome Sessione</label>
-                <input type="text" id="session-name" placeholder="Es. Analisi 1, Storia...">
-            </div>
-            <div class="form-group">
-                <label>Importa Materiale</label>
-                <div id="drop-zone" class="drop-zone">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Trascina qui i file o clicca per selezionare</p>
+    <!-- Modals Container -->
+    <div id="modal-container">
+        <!-- New Session Modal -->
+        <div id="new-session-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Nuova Sessione</h2>
+                <div class="form-group">
+                    <label for="session-name">Nome Sessione</label>
+                    <input type="text" id="session-name" placeholder="Es. Analisi 1, Storia...">
                 </div>
-                <div id="file-list" class="file-list"></div>
-            </div>
-            <div class="modal-actions">
-                <button id="cancel-btn" class="btn btn-secondary">Annulla</button>
-                <button id="create-session-btn" class="btn btn-primary">Crea Sessione</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Timer Modal -->
-    <div id="timer-modal" class="modal">
-        <div class="modal-content timer-modal-content">
-            <span class="close-modal" id="close-timer-modal">&times;</span>
-            <h2>Timer Pomodoro</h2>
-
-            <div class="timer-modal-body">
-                <div class="timer-display-large" id="timer-display">25:00</div>
-
-                <div class="timer-controls-large">
-                    <button class="timer-btn-large" id="timer-start">
-                        <i class="fas fa-play"></i>
-                    </button>
-                    <button class="timer-btn-large" id="timer-pause" style="display: none;">
-                        <i class="fas fa-pause"></i>
-                    </button>
-                    <button class="timer-btn-large" id="timer-reset">
-                        <i class="fas fa-redo"></i>
-                    </button>
+                <div class="form-group">
+                    <label>Importa Materiale</label>
+                    <div id="drop-zone" class="drop-zone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Trascina qui i file o clicca per selezionare</p>
+                    </div>
+                    <div id="file-list" class="file-list"></div>
                 </div>
-
-                <div class="timer-presets-large">
-                    <button class="preset-btn-large" data-minutes="25">25 minuti</button>
-                    <button class="preset-btn-large" data-minutes="15">15 minuti</button>
-                    <button class="preset-btn-large" data-minutes="5">5 minuti</button>
+                <div class="modal-actions">
+                    <button id="cancel-btn" class="btn btn-secondary">Annulla</button>
+                    <button id="create-session-btn" class="btn btn-primary">Crea Sessione</button>
                 </div>
             </div>
         </div>

@@ -1,0 +1,133 @@
+/* Folder Component (Home) */
+.folder-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.folder {
+    width: 120px;
+    height: 90px;
+    position: relative;
+    margin-bottom: 10px;
+    perspective: 1000px;
+}
+
+.folder-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #5d9b79;
+    border-radius: 0 8px 8px 8px;
+    top: 0;
+    left: 0;
+}
+
+.folder-back::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 40%;
+    height: 10px;
+    background-color: #5d9b79;
+    border-radius: 8px 8px 0 0;
+}
+
+.paper {
+    position: absolute;
+    width: 90%;
+    height: 80%;
+    background-color: white;
+    bottom: 5px;
+    left: 5%;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.paper:nth-child(1) {
+    transform: rotate(-2deg);
+}
+
+.paper:nth-child(2) {
+    transform: rotate(1deg);
+}
+
+.paper:nth-child(3) {
+    transform: rotate(-1deg);
+}
+
+.folder:hover .paper:nth-child(1) {
+    transform: translateY(-5px) rotate(-4deg);
+}
+
+.folder:hover .paper:nth-child(2) {
+    transform: translateY(-10px) rotate(2deg);
+}
+
+.folder:hover .paper:nth-child(3) {
+    transform: translateY(-15px) rotate(-2deg);
+}
+
+.folder-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #7ab394;
+    border-radius: 0 8px 8px 8px;
+    top: 0;
+    left: 0;
+    transform-origin: bottom;
+    transition: transform 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.folder-front::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 40%;
+    height: 10px;
+    background-color: #7ab394;
+    border-radius: 8px 8px 0 0;
+}
+
+.folder:hover .folder-front {
+    transform: rotateX(-40deg) translateY(5px);
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.folder-name {
+    font-weight: 600;
+    color: var(--text-main);
+    text-align: center;
+}
+
+.folder-info {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.folder.open .folder-front {
+    transform: rotateX(-50deg) translateY(5px);
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.folder.open .paper:nth-child(1) {
+    transform: translateY(-60px) rotate(-15deg);
+    transition-delay: 0.1s;
+}
+
+.folder.open .paper:nth-child(2) {
+    transform: translateY(-60px) rotate(0deg);
+    transition-delay: 0.2s;
+}
+
+.folder.open .paper:nth-child(3) {
+    transform: translateY(-60px) rotate(15deg);
+    transition-delay: 0.3s;
+}
