@@ -260,9 +260,23 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="modules/eventmanager.js"></script>
-    <script src="modules/home.js"></script>
-    <script src="modules/studysession.js"></script>
+    <!-- Core -->
+    <script src="core/EventManager.js"></script>
+    <script src="core/ToastManager.js"></script>
+
+    <!-- Modules -->
+    <script src="modules/home/HomeModule.js"></script>
+
+    <!-- Session Module -->
+    <script src="modules/session/SessionModel.js"></script>
+    <script src="modules/session/views/SessionListView.js"></script>
+    <script src="modules/session/views/ActiveSessionView.js"></script>
+    <script src="modules/session/views/TimerView.js"></script>
+    <script src="modules/session/views/FlashcardView.js"></script>
+    <script src="modules/session/views/DocumentView.js"></script>
+    <script src="modules/session/SessionController.js"></script>
+
+    <!-- Main App -->
     <script src="app.js"></script>
 </body>
 
