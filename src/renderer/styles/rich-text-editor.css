@@ -1,0 +1,417 @@
+/* Rich Text Editor Styles (Quill) */
+
+/* Container principale dell'editor */
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Toolbar */
+.tiptap-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.tiptap-toolbar-group {
+    display: flex;
+    gap: 2px;
+    padding: 0 4px;
+    border-right: 1px solid var(--border-color);
+}
+
+.tiptap-toolbar-group:last-child {
+    border-right: none;
+}
+
+.tiptap-toolbar-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+.tiptap-toolbar-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.tiptap-toolbar-btn.is-active {
+    background: var(--primary);
+    color: white;
+}
+
+.tiptap-toolbar-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.tiptap-toolbar-separator {
+    width: 1px;
+    height: 24px;
+    background: var(--border-color);
+    margin: 0 4px;
+}
+
+/* Editor content area */
+.tiptap-editor-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.tiptap-editor-content {
+    outline: none;
+    min-height: 100%;
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* Prosemirror base styles */
+.ProseMirror {
+    outline: none;
+}
+
+.ProseMirror>*+* {
+    margin-top: 0.75em;
+}
+
+/* Headings */
+.tiptap-editor-content h1,
+.tiptap-editor-content h2,
+.tiptap-editor-content h3,
+.tiptap-editor-content h4,
+.tiptap-editor-content h5,
+.tiptap-editor-content h6 {
+    line-height: 1.3;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: var(--text-primary);
+}
+
+.tiptap-editor-content h1 {
+    font-size: 2em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.3em;
+}
+
+.tiptap-editor-content h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.3em;
+}
+
+.tiptap-editor-content h3 {
+    font-size: 1.25em;
+}
+
+.tiptap-editor-content h4 {
+    font-size: 1.1em;
+}
+
+.tiptap-editor-content h5 {
+    font-size: 1em;
+}
+
+.tiptap-editor-content h6 {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+/* Paragraph */
+.tiptap-editor-content p {
+    margin: 0.5em 0;
+}
+
+/* Text formatting */
+.tiptap-editor-content strong {
+    font-weight: 700;
+}
+
+.tiptap-editor-content em {
+    font-style: italic;
+}
+
+.tiptap-editor-content u {
+    text-decoration: underline;
+}
+
+.tiptap-editor-content s {
+    text-decoration: line-through;
+}
+
+.tiptap-editor-content code {
+    background: var(--bg-primary);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+/* Links */
+.tiptap-editor-content a {
+    color: var(--primary);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.tiptap-editor-content a:hover {
+    color: var(--primary-light);
+}
+
+/* Highlight */
+.tiptap-editor-content mark {
+    background-color: #fef08a;
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
+
+/* Lists */
+.tiptap-editor-content ul,
+.tiptap-editor-content ol {
+    padding-left: 1.5em;
+    margin: 0.5em 0;
+}
+
+.tiptap-editor-content ul {
+    list-style-type: disc;
+}
+
+.tiptap-editor-content ol {
+    list-style-type: decimal;
+}
+
+.tiptap-editor-content li {
+    margin: 0.25em 0;
+}
+
+.tiptap-editor-content li>p {
+    margin: 0;
+}
+
+.tiptap-editor-content ul ul,
+.tiptap-editor-content ol ol,
+.tiptap-editor-content ul ol,
+.tiptap-editor-content ol ul {
+    margin: 0.25em 0;
+}
+
+/* Task List */
+.tiptap-editor-content ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+}
+
+.tiptap-editor-content ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.tiptap-editor-content ul[data-type="taskList"] li>label {
+    flex: 0 0 auto;
+    margin-top: 3px;
+}
+
+.tiptap-editor-content ul[data-type="taskList"] li>div {
+    flex: 1;
+}
+
+.tiptap-editor-content ul[data-type="taskList"] input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+/* Blockquote */
+.tiptap-editor-content blockquote {
+    border-left: 4px solid var(--primary);
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    padding: 0.5em 1em;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Code Block */
+.tiptap-editor-content pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Monaco', 'Courier New', monospace;
+    padding: 1em;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1em 0;
+}
+
+.tiptap-editor-content pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+/* Syntax Highlighting (VS Code Dark+ theme) */
+.tiptap-editor-content .hljs-comment,
+.tiptap-editor-content .hljs-quote {
+    color: #6a9955;
+}
+
+.tiptap-editor-content .hljs-keyword,
+.tiptap-editor-content .hljs-selector-tag {
+    color: #569cd6;
+}
+
+.tiptap-editor-content .hljs-string {
+    color: #ce9178;
+}
+
+.tiptap-editor-content .hljs-number,
+.tiptap-editor-content .hljs-literal {
+    color: #b5cea8;
+}
+
+.tiptap-editor-content .hljs-function,
+.tiptap-editor-content .hljs-title {
+    color: #dcdcaa;
+}
+
+.tiptap-editor-content .hljs-params {
+    color: #9cdcfe;
+}
+
+.tiptap-editor-content .hljs-built_in,
+.tiptap-editor-content .hljs-class {
+    color: #4ec9b0;
+}
+
+/* Horizontal Rule */
+.tiptap-editor-content hr {
+    border: none;
+    border-top: 2px solid var(--border-color);
+    margin: 2em 0;
+}
+
+/* Tables */
+.tiptap-editor-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.tiptap-editor-content table td,
+.tiptap-editor-content table th {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+    position: relative;
+}
+
+.tiptap-editor-content table th {
+    background: var(--bg-primary);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tiptap-editor-content table td {
+    background: var(--bg-secondary);
+}
+
+.tiptap-editor-content table tr:hover td {
+    background: var(--bg-hover);
+}
+
+/* Selected cell */
+.tiptap-editor-content .selectedCell {
+    background: rgba(var(--primary-rgb), 0.1);
+}
+
+/* Placeholder */
+.tiptap-editor-content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    pointer-events: none;
+    height: 0;
+}
+
+/* Focus styles */
+.tiptap-editor-content:focus {
+    outline: none;
+}
+
+/* Selection */
+.tiptap-editor-content ::selection {
+    background: rgba(var(--primary-rgb), 0.2);
+}
+
+/* Scrollbar */
+.tiptap-editor-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tiptap-editor-wrapper::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.tiptap-editor-wrapper::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.tiptap-editor-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tiptap-toolbar {
+        gap: 2px;
+        padding: 6px;
+    }
+
+    .tiptap-toolbar-btn {
+        padding: 4px 6px;
+        min-width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
+
+    .tiptap-editor-wrapper {
+        padding: 12px;
+    }
+
+    .tiptap-editor-content {
+        font-size: 14px;
+    }
+}

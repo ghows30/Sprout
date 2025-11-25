@@ -137,15 +137,18 @@ app.whenReady().then(() => {
         }
     });
 
-    // Salva automaticamente in 'appunti.txt'
+    // Salva automaticamente in 'appunti.json' (formato TipTap)
     ipcMain.handle('auto-save-notes', async (event, { sessionPath, content }) => {
         try {
             if (!sessionPath) {
                 throw new Error('Missing sessionPath');
             }
 
-            const filePath = path.join(sessionPath, 'appunti.txt');
-            fs.writeFileSync(filePath, content, 'utf8');
+            const filePath = path.join(sessionPath, 'appunti.json');
+
+            // Salva il contenuto JSON di TipTap
+            const jsonContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+            fs.writeFileSync(filePath, jsonContent, 'utf8');
 
             // Update lastModified in session.json
             const sessionFile = path.join(sessionPath, 'session.json');
@@ -162,25 +165,60 @@ app.whenReady().then(() => {
         }
     });
 
-    // Carica gli appunti da 'appunti.txt' se esiste
+
+    // Carica gli appunti da 'appunti.json' se esiste, altrimenti migra da 'appunti.txt'
     ipcMain.handle('load-notes', async (event, { sessionPath }) => {
         try {
             if (!sessionPath) {
                 throw new Error('Missing sessionPath');
             }
 
-            const filePath = path.join(sessionPath, 'appunti.txt');
-            if (fs.existsSync(filePath)) {
-                const content = fs.readFileSync(filePath, 'utf8');
-                return { success: true, content };
-            } else {
-                return { success: true, content: '' };
+            const jsonFilePath = path.join(sessionPath, 'appunti.json');
+            const txtFilePath = path.join(sessionPath, 'appunti.txt');
+
+            // Prova a caricare il file JSON
+            if (fs.existsSync(jsonFilePath)) {
+                const content = fs.readFileSync(jsonFilePath, 'utf8');
+                return { success: true, content: JSON.parse(content) };
+            }
+            // Se non esiste JSON ma esiste TXT, migra automaticamente
+            else if (fs.existsSync(txtFilePath)) {
+                const txtContent = fs.readFileSync(txtFilePath, 'utf8');
+
+                // Converti il testo plain in formato TipTap JSON
+                const tiptapContent = {
+                    type: 'doc',
+                    content: txtContent.split('\n').map(line => ({
+                        type: 'paragraph',
+                        content: line.trim() ? [{ type: 'text', text: line }] : []
+                    }))
+                };
+
+                // Salva il contenuto migrato in formato JSON
+                fs.writeFileSync(jsonFilePath, JSON.stringify(tiptapContent, null, 2), 'utf8');
+
+                // Opzionalmente, rinomina il file .txt come backup
+                const backupPath = path.join(sessionPath, 'appunti.txt.backup');
+                fs.renameSync(txtFilePath, backupPath);
+
+                return { success: true, content: tiptapContent, migrated: true };
+            }
+            // Nessun file esistente, restituisci contenuto vuoto
+            else {
+                return {
+                    success: true,
+                    content: {
+                        type: 'doc',
+                        content: [{ type: 'paragraph' }]
+                    }
+                };
             }
         } catch (error) {
             console.error('Error loading notes:', error);
             return { success: false, error: error.message };
         }
     });
+
 
     ipcMain.on('save-session-data', (event, sessionData) => {
         try {

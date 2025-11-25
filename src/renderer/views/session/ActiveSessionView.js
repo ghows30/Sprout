@@ -1,6 +1,8 @@
 class ActiveSessionView {
     constructor(controller) {
         this.controller = controller;
+        this.editor = null;
+        this.autoSaveTimeout = null;
         // No immediate DOM caching, wait for render
     }
 
@@ -76,7 +78,8 @@ class ActiveSessionView {
                                 Appunti
                             </div>
                             <div class="editor-container">
-                                <textarea id="session-notes" placeholder="Scrivi qui i tuoi appunti..."></textarea>
+                                <!-- Quill Editor (con toolbar integrata) -->
+                                <div id="rich-text-editor"></div>
                             </div>
                         </div>
 
@@ -112,21 +115,17 @@ class ActiveSessionView {
         this.sessionView = document.getElementById('active-session');
         this.sessionTitle = document.getElementById('active-session-title');
         this.sessionFileList = document.getElementById('session-file-list');
-        this.sessionNotes = document.getElementById('session-notes');
+        this.editorElement = document.getElementById('rich-text-editor');
         this.autoSaveStatus = document.getElementById('auto-save-status');
         this.autoSaveText = document.getElementById('auto-save-text');
         this.sessionSidebar = document.getElementById('session-sidebar');
         this.sessionResizer = document.getElementById('session-resizer');
         this.toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
         this.addDocumentBtn = document.getElementById('add-document-btn');
-        this.autoSaveTimeout = null;
     }
 
     bindEvents() {
-        // Salva automaticamente quando l'utente scrive (con ritardo di 2 secondi)
-        if (this.sessionNotes) {
-            this.sessionNotes.addEventListener('input', () => this.handleAutoSave());
-        }
+        // Quill gestisce la toolbar automaticamente, non serve bindare eventi
 
         if (this.sessionResizer) {
             this.sessionResizer.addEventListener('mousedown', (e) => this.initResize(e));
@@ -174,7 +173,9 @@ class ActiveSessionView {
 
         // Imposta un nuovo timer di 2 secondi
         this.autoSaveTimeout = setTimeout(async () => {
-            const content = this.sessionNotes.value;
+            if (!this.editor) return;
+
+            const content = this.editor.getJSON();
             const result = await this.controller.autoSaveNote(content);
 
             if (result.success && this.autoSaveStatus && this.autoSaveText) {
@@ -192,12 +193,18 @@ class ActiveSessionView {
 
         this.sessionTitle.textContent = session.name;
 
+        // Inizializza l'editor
+        this.initEditor();
+
         // Carica gli appunti esistenti
         const notesResult = await this.controller.loadNotes();
-        if (notesResult.success) {
-            this.sessionNotes.value = notesResult.content;
-        } else {
-            this.sessionNotes.value = '';
+        if (notesResult.success && this.editor) {
+            this.editor.setContent(notesResult.content);
+
+            // Mostra un toast se è stata effettuata una migrazione
+            if (notesResult.migrated && typeof toastManager !== 'undefined') {
+                toastManager.show('Migrazione completata', 'I tuoi appunti sono stati convertiti al nuovo formato!', 'success');
+            }
         }
 
         this.renderFileList(session.files);
@@ -277,5 +284,35 @@ class ActiveSessionView {
 
         this.sessionFileList.appendChild(categoryHeader);
         this.sessionFileList.appendChild(categoryContainer);
+    }
+
+    /**
+     * Inizializza l'editor di testo ricco
+     */
+    initEditor() {
+        if (!this.editorElement) return;
+
+        // Distruggi l'editor esistente se presente
+        if (this.editor) {
+            this.editor.destroy();
+        }
+
+        // Crea una nuova istanza dell'editor
+        this.editor = new RichTextEditor();
+        this.editor.init(
+            this.editorElement,
+            (content) => this.handleAutoSave(),
+            null
+        );
+    }
+
+    /**
+     * Distrugge l'editor quando si esce dalla sessione
+     */
+    destroyEditor() {
+        if (this.editor) {
+            this.editor.destroy();
+            this.editor = null;
+        }
     }
 }
