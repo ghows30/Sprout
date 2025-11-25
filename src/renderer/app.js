@@ -1,12 +1,12 @@
 const App = (() => {
-    let homeModule;
+    let homeController;
     let sessionController;
     let navLinks;
     let highlight;
 
     function init() {
-        // Initialize Modules
-        homeModule = new HomeModule();
+        // Initialize Controllers
+        homeController = new HomeController();
         sessionController = new SessionController();
 
         setupSidebar();
@@ -90,8 +90,8 @@ const App = (() => {
 
         switch (viewId) {
             case 'home':
-                contentContainer.innerHTML = homeModule.getTemplate();
-                homeModule.init();
+                contentContainer.innerHTML = homeController.getTemplate();
+                homeController.init();
                 break;
             case 'study-spaces':
                 contentContainer.innerHTML = sessionController.listView.getTemplate();
