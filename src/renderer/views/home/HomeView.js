@@ -23,13 +23,6 @@ class HomeView {
                     </div>
                     <div class="card">
                         <div class="card-icon">
-                            <i class="fas fa-file-import"></i>
-                        </div>
-                        <h3>Importa PDF</h3>
-                        <p>Carica slide o documenti da studiare.</p>
-                    </div>
-                    <div class="card">
-                        <div class="card-icon">
                             <i class="fas fa-clock"></i>
                         </div>
                         <h3>Recenti</h3>

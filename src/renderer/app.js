@@ -1,6 +1,7 @@
 const App = (() => {
     let homeController;
     let sessionController;
+    let settingsController;
     let navLinks;
     let highlight;
 
@@ -8,6 +9,10 @@ const App = (() => {
         // Initialize Controllers
         homeController = new HomeController();
         sessionController = new SessionController();
+        settingsController = new SettingsController();
+
+        // Apply saved theme
+        settingsController.model.applyTheme();
 
         setupSidebar();
         setupNavigation();
@@ -99,14 +104,8 @@ const App = (() => {
                 sessionController.loadSessions(); // Reload sessions
                 break;
             case 'settings':
-                contentContainer.innerHTML = `
-                    <div id="settings" class="view-section">
-                        <header>
-                            <h1>Impostazioni</h1>
-                            <p class="subtitle">Gestisci le tue preferenze.</p>
-                        </header>
-                        <p>Work in progress...</p>
-                    </div>`;
+                contentContainer.innerHTML = settingsController.getTemplate();
+                settingsController.init();
                 break;
             case 'active-session':
                 contentContainer.innerHTML = sessionController.activeView.getTemplate();

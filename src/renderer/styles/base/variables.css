@@ -24,4 +24,34 @@
 
     --shadow-sm: 0 2px 4px rgba(57, 86, 72, 0.1);
     --shadow-md: 0 4px 6px rgba(57, 86, 72, 0.15);
+
+    /* Additional variables for settings */
+    --primary-color: #588157;
+    --bg-main: #e5e3dc;
+    --text-secondary: #9ead85;
+    --border-color: #d0cec7;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --primary-dark: #9ead85;
+    --primary-medium: #588157;
+    --primary-light: #406446;
+    --accent-color: #9ead85;
+    --bg-color: #1a1a1a;
+    --sidebar-bg: #2d2d2d;
+
+    --text-main: #e5e3dc;
+    --text-light: #e5e3dc;
+    --text-muted: #9ead85;
+
+    --card-bg: #2d2d2d;
+
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+
+    --primary-color: #9ead85;
+    --bg-main: #1a1a1a;
+    --text-secondary: #9ead85;
+    --border-color: #3d3d3d;
 }
