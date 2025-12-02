@@ -2,6 +2,7 @@ class TimerView {
     constructor() {
         this.timerSeconds = 1500; // 25 minutes default
         this.timerInterval = null;
+        this.selectedPresetMinutes = 25;
     }
 
     init() {
@@ -18,6 +19,7 @@ class TimerView {
         this.closeTimerModalBtn = document.getElementById('close-timer-modal');
         this.timerIconBtn = document.getElementById('timer-icon-btn');
         this.timerCountdown = document.getElementById('timer-countdown');
+        this.presetButtons = Array.from(document.querySelectorAll('.preset-btn-large'));
     }
 
     bindEvents() {
@@ -28,13 +30,15 @@ class TimerView {
         if (this.timerIconBtn) this.timerIconBtn.addEventListener('click', () => this.openModal());
         if (this.closeTimerModalBtn) this.closeTimerModalBtn.addEventListener('click', () => this.closeModal());
 
-        const presetBtnsLarge = document.querySelectorAll('.preset-btn-large');
-        presetBtnsLarge.forEach(btn => {
+        this.presetButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                this.setTimerPreset(parseInt(btn.dataset.minutes));
-                this.closeModal();
+                const minutes = parseInt(btn.dataset.minutes, 10);
+                this.setTimerPreset(minutes);
             });
         });
+
+        this.updatePresetSelection();
+        this.updateTimerDisplay();
     }
 
     updateTimerDisplay() {
@@ -77,7 +81,7 @@ class TimerView {
 
     resetTimer() {
         this.pauseTimer();
-        this.timerSeconds = 1500;
+        this.timerSeconds = this.selectedPresetMinutes * 60;
         this.updateTimerDisplay();
 
         if (this.timerIconBtn) this.timerIconBtn.style.display = 'flex';
@@ -86,18 +90,33 @@ class TimerView {
 
     setTimerPreset(minutes) {
         this.pauseTimer();
+        this.selectedPresetMinutes = minutes;
         this.timerSeconds = minutes * 60;
         this.updateTimerDisplay();
+        this.updatePresetSelection();
 
         if (this.timerIconBtn) this.timerIconBtn.style.display = 'flex';
         if (this.timerCountdown) this.timerCountdown.style.display = 'none';
     }
 
     openModal() {
+        this.updatePresetSelection();
         this.timerModal.style.display = 'flex';
     }
 
     closeModal() {
         this.timerModal.style.display = 'none';
+    }
+
+    updatePresetSelection() {
+        if (!this.presetButtons) return;
+        this.presetButtons.forEach(btn => {
+            const minutes = parseInt(btn.dataset.minutes, 10);
+            if (minutes === this.selectedPresetMinutes) {
+                btn.classList.add('preset-active');
+            } else {
+                btn.classList.remove('preset-active');
+            }
+        });
     }
 }

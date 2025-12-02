@@ -42,8 +42,7 @@ class RichTextEditor {
                 theme: 'snow',
                 modules: {
                     toolbar: toolbarOptions
-                },
-                placeholder: 'Scrivi qui i tuoi appunti...'
+                }
             });
 
             // Imposta il contenuto iniziale se fornito

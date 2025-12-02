@@ -1,21 +1,16 @@
 Pattern 1:
-
- Observer Pattern: Quando si crea una sessione di studio, 
- il sistema deve aggiornare la lista delle sessioni, salvare i dati 
- e cambiare vista.
-
- Creiamo un EventManager. StudySessions(il modulo)il moduloosseerva l'evento SESSION_CREATED
- e aggiorna la lista delle sessioni automaticamente
+    Observer Pattern: quando si crea una sessione di studio, il sistema aggiorna la lista delle sessioni,
+    salva i dati e cambia vista.
+    - EventManager.js gestisce gli eventi globali.
+    - StudySessions osserva l'evento SESSION_CREATED e aggiorna la lista delle sessioni automaticamente.
 
 Pattern 2:
-    Singleton Pattern: Utilizzato per i manager globali
-
+    Singleton Pattern: utilizzato per i manager globali.
     - EventManager.js -> const eventManager = new EventManager();
     - ToastManager.js -> const toastManager = new ToastManager();
-
-    Viene garantita una singola istanza globale
+    - Garantisce una singola istanza condivisa.
      
-Pattern3:
-    Facade Pattern: Operazioni sulle sessioni
-    
-    - SessionController.js -> semplifica le operazioni sulle sessioni e fornisce un'interfaccia unificata
+Pattern 3:
+    Facade Pattern: operazioni sulle sessioni.
+    - SessionController.js semplifica le operazioni sulle sessioni e fornisce un'interfaccia unificata.
+

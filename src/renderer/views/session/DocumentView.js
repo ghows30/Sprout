@@ -27,6 +27,7 @@ class DocumentView {
         const ext = fileName.split('.').pop().toLowerCase();
 
         this.documentViewer.style.display = 'flex';
+        if (this.splitResizer) this.splitResizer.style.display = 'flex';
         this.viewerFilename.textContent = fileName;
 
         this.documentIframe.style.display = 'none';
@@ -46,6 +47,7 @@ class DocumentView {
 
     closeDocument() {
         this.documentViewer.style.display = 'none';
+        if (this.splitResizer) this.splitResizer.style.display = 'none';
         this.viewerFilename.textContent = 'Nessun documento aperto';
         this.documentIframe.src = '';
         this.documentImage.src = '';
