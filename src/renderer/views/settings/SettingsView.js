@@ -87,7 +87,7 @@ class SettingsView {
                     <div class="settings-group">
                         <div class="setting-item">
                             <div class="setting-info">
-                                <label for="session-duration-input">Durata Sessione Predefinita</label>
+                                <label for="session-duration-input">Durata Spazio Predefinita</label>
                                 <p class="setting-description">Durata predefinita del timer (minuti)</p>
                             </div>
                             <div class="setting-control-group">
@@ -115,8 +115,8 @@ class SettingsView {
                     <div class="settings-group">
                         <div class="setting-item">
                             <div class="setting-info">
-                                <label>Percorso Sessioni</label>
-                                <p class="setting-description" id="sessions-path-display">Cartella dove vengono salvate le sessioni</p>
+                                <label>Percorso Spazi</label>
+                                <p class="setting-description" id="sessions-path-display">Cartella dove vengono salvati gli spazi</p>
                             </div>
                             <button id="change-path-btn" class="btn-secondary">Cambia Percorso</button>
                         </div>
@@ -124,7 +124,7 @@ class SettingsView {
                         <div class="setting-item">
                             <div class="setting-info">
                                 <label for="auto-backup-toggle">Backup Automatico</label>
-                                <p class="setting-description">Crea backup automatici delle sessioni</p>
+                                <p class="setting-description">Crea backup automatici degli spazi</p>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="auto-backup-toggle">

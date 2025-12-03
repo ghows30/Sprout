@@ -31,4 +31,24 @@ class HomeModel {
             return null;
         }
     }
+
+    async renameSession(sessionPath, newName) {
+        return await this.ipcRenderer.invoke('rename-session', {
+            sessionPath: sessionPath,
+            newName: newName
+        });
+    }
+
+    async checkSessionNameExists(name, excludePath = null) {
+        return await this.ipcRenderer.invoke('check-session-name-exists', {
+            name: name,
+            excludePath: excludePath
+        });
+    }
+
+    async deleteSession(sessionPath) {
+        return await this.ipcRenderer.invoke('delete-session', {
+            sessionPath: sessionPath
+        });
+    }
 }

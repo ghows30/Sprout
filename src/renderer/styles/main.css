@@ -12,6 +12,7 @@
 @import 'components/forms.css';
 @import 'components/modals.css';
 @import 'components/toast.css';
+@import 'components/context-menu.css';
 
 /* Modules */
 @import 'modules/home.css';

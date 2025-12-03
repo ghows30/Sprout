@@ -50,4 +50,59 @@ class HomeController {
             console.error('Error opening session:', error);
         }
     }
+
+    async renameSession(sessionPath, oldName, newName) {
+        try {
+            // Valida che il nuovo nome non sia vuoto
+            if (!newName || !newName.trim()) {
+                return { success: false, error: 'EMPTY_NAME' };
+            }
+
+            // Controlla se il nome esiste già (escludendo la sessione corrente)
+            const checkResult = await this.model.checkSessionNameExists(newName, sessionPath);
+            if (checkResult.exists) {
+                return { success: false, error: 'SESSION_NAME_EXISTS' };
+            }
+
+            // Rinomina la sessione
+            const result = await this.model.renameSession(sessionPath, newName);
+
+            if (result.success) {
+                // Ricarica le sessioni recenti
+                await this.loadRecentSessions();
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error renaming session:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async deleteSession(sessionPath, sessionName) {
+        try {
+            const result = await this.model.deleteSession(sessionPath);
+
+            if (result.success) {
+                // Ricarica le sessioni recenti
+                await this.loadRecentSessions();
+
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Successo', `Spazio "${sessionName}" eliminato`, 'success');
+                }
+            } else {
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Errore', 'Impossibile eliminare lo spazio', 'error');
+                }
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error deleting session:', error);
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Errore', 'Errore durante l\'eliminazione', 'error');
+            }
+            return { success: false, error: error.message };
+        }
+    }
 }

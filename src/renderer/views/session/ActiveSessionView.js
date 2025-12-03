@@ -52,7 +52,7 @@ class ActiveSessionView {
                 </div>
                 <main class="session-main">
                     <header class="session-header">
-                        <h2 id="active-session-title">Sessione</h2>
+                        <h2 id="active-session-title">Spazio</h2>
 
                         <!-- Auto-save status indicator -->
                         <div class="auto-save-status" id="auto-save-status" style="display: none;">

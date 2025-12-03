@@ -1,0 +1,61 @@
+/* Context Menu */
+.context-menu {
+    position: fixed;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    padding: 8px;
+    z-index: 1000;
+    min-width: 180px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    animation: contextMenuSlideIn 0.15s ease;
+}
+
+@keyframes contextMenuSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.context-menu-item:hover {
+    background-color: rgba(93, 155, 121, 0.1);
+}
+
+.context-menu-item i {
+    width: 16px;
+    text-align: center;
+    color: var(--primary-dark);
+    font-size: 0.9rem;
+}
+
+.context-menu-item.danger:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.context-menu-item.danger i {
+    color: #e74c3c;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.05);
+    margin: 4px 0;
+}

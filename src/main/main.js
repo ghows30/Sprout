@@ -332,6 +332,104 @@ app.whenReady().then(() => {
             return { success: false, error: error.message };
         }
     });
+
+    // Check if a session name already exists
+    ipcMain.handle('check-session-name-exists', async (event, { name, excludePath }) => {
+        try {
+            const safeName = name.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+            const sessionDir = path.join(sproutPath, safeName);
+
+            // If excludePath is provided, ignore that specific path (for rename validation)
+            if (excludePath) {
+                const excludeSafeName = path.basename(excludePath);
+                if (safeName.toLowerCase() === excludeSafeName.toLowerCase()) {
+                    return { exists: false };
+                }
+            }
+
+            return { exists: fs.existsSync(sessionDir) };
+        } catch (error) {
+            console.error('Error checking session name:', error);
+            return { exists: false, error: error.message };
+        }
+    });
+
+    // Rename a session
+    ipcMain.handle('rename-session', async (event, { sessionPath, newName }) => {
+        try {
+            if (!sessionPath || !newName) {
+                throw new Error('Missing sessionPath or newName');
+            }
+
+            const safeName = newName.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+            if (!safeName) {
+                throw new Error('Invalid session name');
+            }
+
+            const newSessionDir = path.join(sproutPath, safeName);
+
+            // Check if new name already exists (and it's not the same folder)
+            if (fs.existsSync(newSessionDir) && sessionPath !== newSessionDir) {
+                return { success: false, error: 'SESSION_NAME_EXISTS' };
+            }
+
+            // Read current session data
+            const sessionFile = path.join(sessionPath, 'session.json');
+            if (!fs.existsSync(sessionFile)) {
+                throw new Error('Session file not found');
+            }
+
+            const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
+
+            // Update session name
+            session.name = newName;
+            session.lastModified = new Date().toISOString();
+
+            // If the folder name needs to change
+            if (sessionPath !== newSessionDir) {
+                // Rename the folder
+                fs.renameSync(sessionPath, newSessionDir);
+
+                // Write updated session file to new location
+                const newSessionFile = path.join(newSessionDir, 'session.json');
+                fs.writeFileSync(newSessionFile, JSON.stringify(session, null, 2));
+            } else {
+                // Just update the session file
+                fs.writeFileSync(sessionFile, JSON.stringify(session, null, 2));
+            }
+
+            return {
+                success: true,
+                newPath: newSessionDir,
+                session: { ...session, fullPath: newSessionDir }
+            };
+        } catch (error) {
+            console.error('Error renaming session:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Delete a session
+    ipcMain.handle('delete-session', async (event, { sessionPath }) => {
+        try {
+            if (!sessionPath) {
+                throw new Error('Missing sessionPath');
+            }
+
+            // Verifica che la cartella esista
+            if (!fs.existsSync(sessionPath)) {
+                return { success: false, error: 'SESSION_NOT_FOUND' };
+            }
+
+            // Elimina ricorsivamente la cartella
+            fs.rmSync(sessionPath, { recursive: true, force: true });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting session:', error);
+            return { success: false, error: error.message };
+        }
+    });
 });
 
 app.on('window-all-closed', () => {
