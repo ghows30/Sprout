@@ -47,6 +47,22 @@
     transition: transform 0.3s ease;
 }
 
+/* Linee sui fogli per simulare testo */
+.paper::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: linear-gradient(to right,
+            #ddd 0%, #ddd 70%, transparent 70%);
+    box-shadow:
+        0 6px 0 #ddd,
+        0 12px 0 #ddd,
+        0 18px 0 #ddd;
+}
+
 .paper:nth-child(1) {
     transform: rotate(-2deg);
 }
@@ -60,15 +76,15 @@
 }
 
 .folder:hover .paper:nth-child(1) {
-    transform: translateY(-5px) rotate(-4deg);
+    transform: translateY(-10px) translateX(-25px) rotate(-15deg);
 }
 
 .folder:hover .paper:nth-child(2) {
-    transform: translateY(-10px) rotate(2deg);
+    transform: translateY(-15px) translateX(0) rotate(0deg);
 }
 
 .folder:hover .paper:nth-child(3) {
-    transform: translateY(-15px) rotate(-2deg);
+    transform: translateY(-10px) translateX(25px) rotate(15deg);
 }
 
 .folder-front {
@@ -118,16 +134,16 @@
 }
 
 .folder.open .paper:nth-child(1) {
-    transform: translateY(-60px) rotate(-15deg);
+    transform: translateY(-20px) translateX(-30px) rotate(-20deg);
     transition-delay: 0.1s;
 }
 
 .folder.open .paper:nth-child(2) {
-    transform: translateY(-60px) rotate(0deg);
+    transform: translateY(-25px) translateX(0) rotate(0deg);
     transition-delay: 0.2s;
 }
 
 .folder.open .paper:nth-child(3) {
-    transform: translateY(-60px) rotate(15deg);
+    transform: translateY(-20px) translateX(30px) rotate(20deg);
     transition-delay: 0.3s;
 }
