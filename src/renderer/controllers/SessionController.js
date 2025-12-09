@@ -226,7 +226,8 @@ class SessionController {
         }
     }
 
-    async createDeck(name) {
+    async createDeck(name, options = {}) {
+        const { skipRender = false } = options;
         const currentSession = this.model.getCurrentSession();
         if (!currentSession) return;
 
@@ -251,7 +252,9 @@ class SessionController {
             // this.model.saveSessionData(currentSession);
 
             // Aggiorna la vista
-            this.flashcardView.render(currentSession.decks);
+            if (!skipRender) {
+                this.flashcardView.render(currentSession.decks);
+            }
             return deck;
         } else {
             console.error('Failed to save deck:', result.error);
@@ -280,6 +283,121 @@ class SessionController {
         await this.model.saveDeck(deck);
 
         this.flashcardView.render(currentSession.decks);
+    }
+
+    normalizeStatus(status) {
+        if (!status) return 'new';
+        const normalized = String(status).toLowerCase();
+        if (['new', 'review', 'consolidated'].includes(normalized)) return normalized;
+        if (['todo', 'pending'].includes(normalized)) return 'new';
+        if (['done', 'ok', 'consolidato', 'completed'].includes(normalized)) return 'consolidated';
+        return 'new';
+    }
+
+    async importFlashcards({ cards, targetDeckId = null, newDeckName = '', useDeckField = false }) {
+        const currentSession = this.model.getCurrentSession();
+        if (!currentSession) {
+            return { success: false, error: 'NO_SESSION' };
+        }
+
+        if (!cards || cards.length === 0) {
+            return { success: false, error: 'NO_CARDS' };
+        }
+
+        if (!currentSession.decks) {
+            currentSession.decks = [];
+        }
+
+        const deckById = new Map(currentSession.decks.map(deck => [String(deck.id), deck]));
+        const deckByName = new Map(currentSession.decks.map(deck => [deck.name.toLowerCase(), deck]));
+
+        const ensureDeck = async (name) => {
+            if (!name) return null;
+            const key = name.toLowerCase();
+            if (deckByName.has(key)) return deckByName.get(key);
+
+            const created = await this.createDeck(name, { skipRender: true });
+            if (created) {
+                deckById.set(String(created.id), created);
+                deckByName.set(key, created);
+            }
+            return created;
+        };
+
+        let fallbackDeck = null;
+        if (targetDeckId) {
+            fallbackDeck = deckById.get(String(targetDeckId)) || deckById.get(Number(targetDeckId));
+        } else if (newDeckName) {
+            fallbackDeck = await ensureDeck(newDeckName);
+        }
+
+        if (!useDeckField && !fallbackDeck) {
+            return { success: false, error: 'DECK_NOT_SELECTED' };
+        }
+
+        const deckBuckets = new Map();
+        let skipped = 0;
+        let imported = 0;
+        let counter = 0;
+        const now = Date.now();
+
+        for (const draft of cards) {
+            const deckNameFromFile = draft.deck && String(draft.deck).trim();
+            let targetDeck = fallbackDeck;
+
+            if (useDeckField && deckNameFromFile) {
+                targetDeck = await ensureDeck(deckNameFromFile);
+            } else if (useDeckField && !deckNameFromFile && fallbackDeck) {
+                targetDeck = fallbackDeck;
+            } else if (useDeckField && !deckNameFromFile && !fallbackDeck) {
+                skipped++;
+                continue;
+            }
+
+            if (!targetDeck) {
+                skipped++;
+                continue;
+            }
+
+            if (!deckBuckets.has(targetDeck.id)) {
+                deckBuckets.set(targetDeck.id, []);
+            }
+
+            deckBuckets.get(targetDeck.id).push({
+                id: now + counter++,
+                question: draft.question,
+                answer: draft.answer,
+                status: this.normalizeStatus(draft.status),
+                createdAt: new Date().toISOString()
+            });
+        }
+
+        for (const [deckId, newCards] of deckBuckets.entries()) {
+            const deck = deckById.get(String(deckId)) || deckById.get(Number(deckId));
+            if (!deck) {
+                skipped += newCards.length;
+                continue;
+            }
+
+            deck.cards = deck.cards || [];
+            deck.cards.push(...newCards);
+
+            const saveResult = await this.model.saveDeck(deck);
+            if (!saveResult.success) {
+                return { success: false, error: saveResult.error || 'SAVE_FAILED' };
+            }
+
+            imported += newCards.length;
+        }
+
+        this.flashcardView.render(currentSession.decks);
+
+        return {
+            success: true,
+            imported,
+            skipped,
+            updatedDecks: deckBuckets.size
+        };
     }
 
     async updateFlashcardStatus(deckId, cardId, status) {

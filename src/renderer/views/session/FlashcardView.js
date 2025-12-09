@@ -7,12 +7,30 @@ class FlashcardView {
         this.studyDeck = null;
         this.currentCardIndex = 0;
         this.history = new StudyHistory();
+        this.importService = new FlashcardImportService([
+            new CsvFlashcardAdapter(),
+            new JsonFlashcardAdapter()
+        ]);
+        this.importState = this.getEmptyImportState();
+        this.importSource = 'csv';
+        this.csvOptions = { delimiter: 'auto', quote: 'auto' };
+        this.lastImportedFile = null; // { file, content }
+    }
+
+    getEmptyImportState() {
+        return {
+            fileName: '',
+            adapter: '',
+            cards: [],
+            errors: []
+        };
     }
 
     init() {
+        this.createModals();
         this.cacheDOM();
         this.bindEvents();
-        this.createModals();
+        this.bindGlobalDelegates();
     }
 
     cacheDOM() {
@@ -20,6 +38,47 @@ class FlashcardView {
         this.createFlashcardBtn = document.getElementById('create-flashcard-btn');
         this.importFlashcardBtn = document.getElementById('import-flashcard-btn');
         this.sessionView = document.getElementById('active-session');
+        this.importModal = document.getElementById('import-flashcards-modal');
+        this.importFileInput = document.getElementById('import-file-input');
+        this.importFileName = document.getElementById('import-file-name');
+        this.importSummary = document.getElementById('import-summary');
+        this.importDeckSelect = document.getElementById('import-target-deck');
+        this.importNewDeckInput = document.getElementById('import-new-deck-name');
+        this.importUseDeckField = document.getElementById('import-use-deck-field');
+        this.importConfirmBtn = document.getElementById('confirm-import-btn');
+        this.importSourceItems = document.querySelectorAll('.import-source-item');
+        this.importSourceList = document.querySelector('.import-source-list');
+        this.csvDelimiterGroup = document.getElementById('csv-delimiter-group');
+        this.csvQuoteGroup = document.getElementById('csv-quote-group');
+        this.importPanelTitle = document.getElementById('import-panel-title');
+        this.importPanelDesc = document.getElementById('import-panel-desc');
+        this.csvOptionsPanel = document.getElementById('csv-options-panel');
+        this.jsonOptionsPanel = document.getElementById('json-options-panel');
+    }
+
+    bindGlobalDelegates() {
+        // Fallback delegation to ensure clicks work even if DOM is rerendered
+        document.addEventListener('click', (e) => {
+            const sourceItem = e.target.closest('.import-source-item');
+            if (sourceItem && document.body.contains(sourceItem)) {
+                this.cacheDOM();
+                this.setImportSource(sourceItem.dataset.source);
+                return;
+            }
+
+            const delimiterPill = e.target.closest('#csv-delimiter-group .import-pill');
+            if (delimiterPill && document.body.contains(delimiterPill)) {
+                this.cacheDOM();
+                this.setCsvDelimiter(delimiterPill.dataset.delimiter);
+                return;
+            }
+
+            const quotePill = e.target.closest('#csv-quote-group .import-pill');
+            if (quotePill && document.body.contains(quotePill)) {
+                this.cacheDOM();
+                this.setCsvQuote(quotePill.dataset.quote);
+            }
+        });
     }
 
     bindEvents() {
@@ -29,48 +88,136 @@ class FlashcardView {
 
     createModals() {
         // Create Deck Modal
-        const deckModal = document.createElement('div');
-        deckModal.id = 'create-deck-modal';
-        deckModal.className = 'modal';
-        deckModal.innerHTML = `
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2>Nuovo Mazzo</h2>
-                <div class="form-group">
-                    <label for="deck-name-input">Nome del mazzo</label>
-                    <input type="text" id="deck-name-input" class="form-control" placeholder="Es. Storia Romana">
+        if (!document.getElementById('create-deck-modal')) {
+            const deckModal = document.createElement('div');
+            deckModal.id = 'create-deck-modal';
+            deckModal.className = 'modal';
+            deckModal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h2>Nuovo Mazzo</h2>
+                    <div class="form-group">
+                        <label for="deck-name-input">Nome del mazzo</label>
+                        <input type="text" id="deck-name-input" class="form-control" placeholder="Es. Storia Romana">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary close-modal-btn">Annulla</button>
+                        <button class="btn btn-primary" id="confirm-create-deck">Crea</button>
+                    </div>
                 </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary close-modal-btn">Annulla</button>
-                    <button class="btn btn-primary" id="confirm-create-deck">Crea</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(deckModal);
+            `;
+            document.body.appendChild(deckModal);
+        }
 
         // Create Card Modal
-        const cardModal = document.createElement('div');
-        cardModal.id = 'create-card-modal';
-        cardModal.className = 'modal';
-        cardModal.innerHTML = `
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2>Nuova Flashcard</h2>
-                <div class="form-group">
-                    <label for="card-question-input">Domanda</label>
-                    <textarea id="card-question-input" class="form-control" rows="3" placeholder="Inserisci la domanda..."></textarea>
+        if (!document.getElementById('create-card-modal')) {
+            const cardModal = document.createElement('div');
+            cardModal.id = 'create-card-modal';
+            cardModal.className = 'modal';
+            cardModal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h2>Nuova Flashcard</h2>
+                    <div class="form-group">
+                        <label for="card-question-input">Domanda</label>
+                        <textarea id="card-question-input" class="form-control" rows="3" placeholder="Inserisci la domanda..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="card-answer-input">Risposta</label>
+                        <textarea id="card-answer-input" class="form-control" rows="3" placeholder="Inserisci la risposta..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary close-modal-btn">Annulla</button>
+                        <button class="btn btn-primary" id="confirm-create-card">Aggiungi</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="card-answer-input">Risposta</label>
-                    <textarea id="card-answer-input" class="form-control" rows="3" placeholder="Inserisci la risposta..."></textarea>
+            `;
+            document.body.appendChild(cardModal);
+        }
+
+        // Import Flashcards Modal
+        if (!document.getElementById('import-flashcards-modal')) {
+            const importModal = document.createElement('div');
+            importModal.id = 'import-flashcards-modal';
+            importModal.className = 'modal';
+            importModal.innerHTML = `
+                <div class="modal-content import-modal">
+                    <span class="close-modal">&times;</span>
+                    <div class="import-layout">
+                        <aside class="import-sidebar">
+                            <div class="import-sidebar-title">
+                                <i class="fas fa-file-import"></i> Import
+                            </div>
+                            <ul class="import-source-list">
+                                <li class="import-source-item active" data-source="csv">CSV</li>
+                                <li class="import-source-item" data-source="json">JSON</li>
+                            </ul>
+                        </aside>
+                        <div class="import-main">
+                            <div class="import-header">
+                                <h2 id="import-panel-title">Import CSV</h2>
+                                <p id="import-panel-desc">Seleziona un file .csv o .json con campi question, answer (opzionale: deck, status).</p>
+                            </div>
+
+                            <div id="csv-options-panel" class="import-options">
+                                <div class="option-group">
+                                    <span class="option-label">Separatore</span>
+                                    <div class="option-pills" id="csv-delimiter-group">
+                                        <button class="import-pill active" data-delimiter="auto">Auto</button>
+                                        <button class="import-pill" data-delimiter=",">,</button>
+                                        <button class="import-pill" data-delimiter=";">;</button>
+                                        <button class="import-pill" data-delimiter="\t">Tab</button>
+                                        <button class="import-pill" data-delimiter="|">|</button>
+                                    </div>
+                                </div>
+                                <div class="option-group">
+                                    <span class="option-label">Quote</span>
+                                    <div class="option-pills" id="csv-quote-group">
+                                        <button class="import-pill" data-quote="none">Nessuna</button>
+                                        <button class="import-pill active" data-quote="auto">Auto</button>
+                                        <button class="import-pill" data-quote='"'>"</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="json-options-panel" class="import-options" style="display: none;">
+                                <p class="json-hint">JSON supporta un array di carte o un oggetto { cards: [] }.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label>File</label>
+                                <div class="import-file-row">
+                                    <button class="btn btn-secondary" id="import-file-picker">
+                                        <i class="fas fa-file-import"></i> Scegli file
+                                    </button>
+                                    <span id="import-file-name" class="import-file-name">Nessun file selezionato</span>
+                                </div>
+                                <input type="file" id="import-file-input" accept=".csv" style="display: none;">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="import-target-deck">Mazzo di destinazione</label>
+                                <select id="import-target-deck" class="form-control"></select>
+                                <input type="text" id="import-new-deck-name" class="form-control" placeholder="Nome nuovo mazzo" style="display: none; margin-top: 8px;">
+                                <label class="inline-checkbox">
+                                    <input type="checkbox" id="import-use-deck-field"> Usa il campo "deck" del file (se presente)
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <div id="import-summary" class="import-summary">Seleziona un file per vedere l'anteprima.</div>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button class="btn btn-secondary close-modal-btn">Annulla</button>
+                                <button class="btn btn-primary" id="confirm-import-btn" disabled>Importa</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary close-modal-btn">Annulla</button>
-                    <button class="btn btn-primary" id="confirm-create-card">Aggiungi</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(cardModal);
+            `;
+            document.body.appendChild(importModal);
+        }
 
         // Study Modal
         const studyModal = document.createElement('div');
@@ -199,10 +346,75 @@ class FlashcardView {
             }
         });
 
+        // Import Modal Events
+        const importModal = document.getElementById('import-flashcards-modal');
+        const importFilePicker = document.getElementById('import-file-picker');
+        const importFileInput = document.getElementById('import-file-input');
+        const importDeckSelect = document.getElementById('import-target-deck');
+        const useDeckFieldCheckbox = document.getElementById('import-use-deck-field');
+        const confirmImportBtn = document.getElementById('confirm-import-btn');
+
+        if (importModal) {
+            importModal.querySelectorAll('.close-modal, .close-modal-btn').forEach(el => {
+                el.addEventListener('click', () => this.closeImportModal());
+            });
+        }
+
+        if (importFilePicker) {
+            importFilePicker.addEventListener('click', () => {
+                if (importFileInput) importFileInput.click();
+            });
+        }
+
+        if (importFileInput) {
+            importFileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    this.handleImportFile(e.target.files[0]).catch(err => console.error(err));
+                }
+            });
+        }
+
+        if (importDeckSelect) {
+            importDeckSelect.addEventListener('change', (e) => this.onImportDeckChange(e.target.value));
+        }
+
+        if (useDeckFieldCheckbox) {
+            useDeckFieldCheckbox.addEventListener('change', () => this.onUseDeckFieldToggle());
+        }
+
+        if (confirmImportBtn) {
+            confirmImportBtn.addEventListener('click', () => this.confirmImport());
+        }
+
+        if (this.importSourceList) {
+            this.importSourceList.addEventListener('click', (e) => {
+                const item = e.target.closest('.import-source-item');
+                if (!item || !this.importSourceList.contains(item)) return;
+                this.setImportSource(item.dataset.source);
+            });
+        }
+
+        if (this.csvDelimiterGroup) {
+            this.csvDelimiterGroup.addEventListener('click', (e) => {
+                const pill = e.target.closest('.import-pill');
+                if (!pill || !this.csvDelimiterGroup.contains(pill)) return;
+                this.setCsvDelimiter(pill.dataset.delimiter);
+            });
+        }
+
+        if (this.csvQuoteGroup) {
+            this.csvQuoteGroup.addEventListener('click', (e) => {
+                const pill = e.target.closest('.import-pill');
+                if (!pill || !this.csvQuoteGroup.contains(pill)) return;
+                this.setCsvQuote(pill.dataset.quote);
+            });
+        }
+
         // Close on outside click
         window.addEventListener('click', (e) => {
             if (e.target === deckModal) closeDeckModal();
             if (e.target === cardModal) closeCardModal();
+            if (e.target === importModal) this.closeImportModal();
             // Removed study modal close on outside click as requested
         });
 
@@ -312,7 +524,397 @@ class FlashcardView {
     }
 
     handleImportFlashcards() {
-        alert('Funzionalità di importazione in arrivo!');
+        this.showImportModal();
+    }
+
+    showImportModal() {
+        if (!this.importModal) return;
+        // Refresh references in case the view was re-rendered
+        this.cacheDOM();
+        this.populateDeckOptions();
+        this.resetImportState();
+        this.importModal.style.display = 'flex';
+    }
+
+    closeImportModal() {
+        if (this.importModal) {
+            this.importModal.style.display = 'none';
+        }
+        this.resetImportState();
+    }
+
+    resetImportState() {
+        this.importState = this.getEmptyImportState();
+        this.importSource = 'csv';
+        this.csvOptions = { delimiter: 'auto', quote: 'auto' };
+
+        if (this.importFileInput) this.importFileInput.value = '';
+        if (this.importFileName) this.importFileName.textContent = 'Nessun file selezionato';
+        if (this.importSummary) this.importSummary.textContent = 'Seleziona un file per vedere l\'anteprima.';
+        if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
+        if (this.importUseDeckField) this.importUseDeckField.checked = false;
+
+        this.toggleNewDeckInput(this.importDeckSelect ? this.importDeckSelect.value : '');
+        this.setImportSource('csv', { resetOptions: true, silentSummary: true });
+    }
+
+    populateDeckOptions() {
+        if (!this.importDeckSelect) return;
+
+        const currentSession = this.controller.model.getCurrentSession();
+        const decks = (currentSession && currentSession.decks) ? currentSession.decks : [];
+
+        this.importDeckSelect.innerHTML = '';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = decks.length ? 'Scegli un mazzo esistente' : 'Crea un nuovo mazzo';
+        this.importDeckSelect.appendChild(placeholder);
+
+        decks.forEach(deck => {
+            const option = document.createElement('option');
+            option.value = deck.id;
+            option.textContent = deck.name;
+            this.importDeckSelect.appendChild(option);
+        });
+
+        const newOption = document.createElement('option');
+        newOption.value = '__new__';
+        newOption.textContent = 'Nuovo mazzo...';
+        this.importDeckSelect.appendChild(newOption);
+
+        if (decks.length > 0) {
+            this.importDeckSelect.value = decks[0].id;
+            this.toggleNewDeckInput(decks[0].id);
+        } else {
+            this.importDeckSelect.value = '__new__';
+            this.toggleNewDeckInput('__new__');
+        }
+    }
+
+    setImportSource(source, { resetOptions = false, silentSummary = false } = {}) {
+        const previous = this.importSource;
+        const safeSource = source === 'json' ? 'json' : 'csv';
+        this.importSource = safeSource;
+
+        if (previous && previous !== safeSource) {
+            this.importState = this.getEmptyImportState();
+            if (this.importFileInput) this.importFileInput.value = '';
+            if (this.importFileName) this.importFileName.textContent = 'Nessun file selezionato';
+            if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
+            this.lastImportedFile = null;
+        }
+
+        if (this.importSourceItems && this.importSourceItems.length > 0) {
+            this.importSourceItems.forEach(item => {
+                item.classList.toggle('active', item.dataset.source === safeSource);
+            });
+        }
+
+        if (this.csvOptionsPanel) {
+            this.csvOptionsPanel.style.display = safeSource === 'csv' ? 'block' : 'none';
+        }
+        if (this.jsonOptionsPanel) {
+            this.jsonOptionsPanel.style.display = safeSource === 'json' ? 'block' : 'none';
+        }
+
+        if (this.importPanelTitle) {
+            this.importPanelTitle.textContent = safeSource === 'csv' ? 'Import CSV' : 'Import JSON';
+        }
+        if (this.importPanelDesc) {
+            this.importPanelDesc.textContent = safeSource === 'csv'
+                ? 'Seleziona un file .csv con question, answer (opzionale: deck, status).'
+                : 'Seleziona un file .json con un array di carte o un oggetto { cards: [] }.';
+        }
+
+        if (this.importFileInput) {
+            this.importFileInput.setAttribute('accept', safeSource === 'csv' ? '.csv' : '.json');
+        }
+
+        if (safeSource === 'csv' && resetOptions) {
+            this.setCsvDelimiter(this.csvOptions.delimiter, null, true);
+            this.setCsvQuote(this.csvOptions.quote, null, true);
+        }
+
+        if (!silentSummary) {
+            this.renderImportSummary();
+        }
+    }
+
+    setCsvDelimiter(value, button = null, force = false) {
+        const parsed = value === '\\t' || value === '\t' ? '\t' : value;
+        if (!force && this.csvOptions.delimiter === parsed) return;
+        this.csvOptions.delimiter = parsed;
+
+        if (this.csvDelimiterGroup) {
+            this.csvDelimiterGroup.querySelectorAll('.import-pill').forEach(btn => {
+                const btnVal = (btn.dataset.delimiter === '\\t' || btn.dataset.delimiter === '\t') ? '\t' : btn.dataset.delimiter;
+                btn.classList.toggle('active', btnVal === parsed);
+            });
+        }
+
+        this.reparseLastFile();
+    }
+
+    setCsvQuote(value, button = null, force = false) {
+        if (!force && this.csvOptions.quote === value) return;
+        this.csvOptions.quote = value;
+
+        if (this.csvQuoteGroup) {
+            this.csvQuoteGroup.querySelectorAll('.import-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.quote === value);
+            });
+        }
+
+        this.reparseLastFile();
+    }
+
+    onImportDeckChange(value) {
+        this.toggleNewDeckInput(value);
+    }
+
+    toggleNewDeckInput(value) {
+        if (!this.importNewDeckInput) return;
+        if (value === '__new__') {
+            this.importNewDeckInput.style.display = 'block';
+            this.importNewDeckInput.focus();
+        } else {
+            this.importNewDeckInput.style.display = 'none';
+            this.importNewDeckInput.value = '';
+        }
+    }
+
+    onUseDeckFieldToggle() {
+        this.renderImportSummary();
+    }
+
+    async handleImportFile(file, { silentToast = false } = {}) {
+        try {
+            const parseOptions = this.getCurrentParseOptions();
+            let result;
+
+            if (file && file.path) {
+                result = this.importService.importFile(file, {
+                    adapterKey: this.importSource,
+                    parseOptions
+                });
+                this.lastImportedFile = { file, content: null };
+            } else {
+                const content = await this.readFileAsText(file);
+                result = this.importService.importFromContent(file.name, content, {
+                    adapterKey: this.importSource,
+                    parseOptions
+                });
+                this.lastImportedFile = { file, content };
+            }
+
+            this.importState = {
+                fileName: result.fileName,
+                adapter: result.adapter,
+                cards: result.cards,
+                errors: result.errors || []
+            };
+
+            if (this.importFileName) {
+                this.importFileName.textContent = `${result.fileName} (${result.cards.length} carte valide)`;
+            }
+        } catch (error) {
+            console.error('Errore durante il parsing del file:', error);
+            this.importState = this.getEmptyImportState();
+            if (!silentToast && typeof toastManager !== 'undefined') {
+                toastManager.show('Errore', error.message || 'Import fallito', 'error');
+            }
+            this.lastImportedFile = null;
+        }
+
+        this.renderImportSummary();
+    }
+
+    getCurrentParseOptions() {
+        if (this.importSource === 'csv') {
+            return {
+                delimiter: this.csvOptions.delimiter,
+                quote: this.csvOptions.quote
+            };
+        }
+        return {};
+    }
+
+    reparseLastFile() {
+        if (!this.lastImportedFile) return;
+        const { file, content } = this.lastImportedFile;
+        const parseOptions = this.getCurrentParseOptions();
+
+        try {
+            let result;
+            if (content !== null && content !== undefined) {
+                result = this.importService.importFromContent(file.name, content, {
+                    adapterKey: this.importSource,
+                    parseOptions
+                });
+            } else if (file && file.path) {
+                result = this.importService.importFile(file, {
+                    adapterKey: this.importSource,
+                    parseOptions
+                });
+            } else {
+                return;
+            }
+
+            this.importState = {
+                fileName: result.fileName,
+                adapter: result.adapter,
+                cards: result.cards,
+                errors: result.errors || []
+            };
+            this.renderImportSummary();
+        } catch (error) {
+            console.error('Re-parse error:', error);
+        }
+    }
+
+    readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                reject(new Error('File non valido'));
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result || '');
+            reader.onerror = () => reject(new Error('Impossibile leggere il file selezionato'));
+            reader.readAsText(file);
+        });
+    }
+
+    renderImportSummary() {
+        if (!this.importSummary) return;
+
+        const { cards, errors, adapter } = this.importState;
+        const summary = this.importService.summarize(cards);
+        const deckEntries = Object.entries(summary.byDeck);
+
+        // Caso: file caricato ma 0 carte/0 errori -> messaggio esplicito
+        if (this.importState.fileName && summary.total === 0 && errors.length === 0) {
+            this.importSummary.innerHTML = `
+                <div class="summary-line">
+                    <span class="summary-label">File</span>
+                    <span>${this.importState.fileName}</span>
+                </div>
+                <div class="import-errors">
+                    Nessuna riga valida trovata. Verifica separatore/quote e che le colonne includano "question" e "answer".
+                </div>
+            `;
+            if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
+            return;
+        }
+
+        if (!cards.length && !errors.length) {
+            this.importSummary.textContent = 'Seleziona un file per vedere l\'anteprima.';
+            if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
+            return;
+        }
+
+        let deckBreakdown = '';
+        if (deckEntries.length > 0) {
+            deckBreakdown = deckEntries.map(([deckName, count]) => `
+                <div class="summary-line">
+                    <span class="summary-label">${deckName}</span>
+                    <span>${count}</span>
+                </div>
+            `).join('');
+        }
+
+        let errorsHtml = '';
+        if (errors.length > 0) {
+            const preview = errors.slice(0, 3).map(err => `<li>Riga ${err.line}: ${err.message}</li>`).join('');
+            const more = errors.length > 3 ? `<li>...altri ${errors.length - 3} errori</li>` : '';
+            errorsHtml = `
+                <div class="import-errors">
+                    <strong>${errors.length} righe con problemi:</strong>
+                    <ul>${preview}${more}</ul>
+                </div>
+            `;
+        }
+
+        this.importSummary.innerHTML = `
+            <div class="summary-line">
+                <span class="summary-label">Formato</span>
+                <span>${adapter || 'N/D'}</span>
+            </div>
+            <div class="summary-line">
+                <span class="summary-label">Carte valide</span>
+                <span>${summary.total}</span>
+            </div>
+            ${deckEntries.length ? `<div class="summary-line"><span class="summary-label">Mazzi individuati</span><span>${deckEntries.length}</span></div>` : ''}
+            ${deckBreakdown ? `<div class="deck-breakdown">${deckBreakdown}</div>` : ''}
+            ${errorsHtml}
+        `;
+
+        if (this.importConfirmBtn) {
+            this.importConfirmBtn.disabled = summary.total === 0;
+        }
+    }
+
+    async confirmImport() {
+        const { cards } = this.importState;
+        if (!cards || cards.length === 0) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Nessuna carta', 'Carica un file valido prima di importare', 'warning');
+            }
+            return;
+        }
+
+        const useDeckField = this.importUseDeckField ? this.importUseDeckField.checked : false;
+        const selectedDeck = this.importDeckSelect ? this.importDeckSelect.value : '';
+
+        let targetDeckId = null;
+        let newDeckName = '';
+
+        if (selectedDeck === '__new__') {
+            newDeckName = this.importNewDeckInput ? this.importNewDeckInput.value.trim() : '';
+            if (!newDeckName) {
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Nome mancante', 'Inserisci il nome del nuovo mazzo', 'warning');
+                }
+                return;
+            }
+        } else if (selectedDeck) {
+            targetDeckId = selectedDeck;
+        }
+
+        if (!useDeckField && !targetDeckId && !newDeckName) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Mazzo non selezionato', 'Scegli un mazzo di destinazione', 'warning');
+            }
+            return;
+        }
+
+        if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
+
+        const result = await this.controller.importFlashcards({
+            cards,
+            targetDeckId,
+            newDeckName,
+            useDeckField
+        });
+
+        if (result.success) {
+            const deckInfo = result.updatedDecks === 1 ? '1 mazzo' : `${result.updatedDecks} mazzi`;
+            const skippedInfo = result.skipped ? `, ${result.skipped} scartate` : '';
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Import completato', `${result.imported} carte importate in ${deckInfo}${skippedInfo}`, 'success');
+            }
+            this.closeImportModal();
+        } else {
+            if (typeof toastManager !== 'undefined') {
+                const message = result.error === 'DECK_NOT_SELECTED'
+                    ? 'Seleziona o crea un mazzo per importare'
+                    : (result.error || 'Errore durante il salvataggio');
+                toastManager.show('Errore', message, 'error');
+            }
+        }
+
+        if (this.importConfirmBtn) this.importConfirmBtn.disabled = false;
     }
 
     render(decks) {
