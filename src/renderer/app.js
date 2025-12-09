@@ -137,6 +137,11 @@ const App = (() => {
     }
 
     function showView(viewId) {
+        // Reset sidebar to default state (unless switching to active-session)
+        if (viewId !== 'active-session') {
+            resetSidebar();
+        }
+
         // Render the view content
         renderView(viewId);
 
@@ -149,6 +154,17 @@ const App = (() => {
                     updateHighlight(link);
                 }
             });
+        }
+    }
+
+    function resetSidebar() {
+        const mainNavLinks = document.getElementById('main-nav-links');
+        const sessionSidebarContent = document.getElementById('session-sidebar-content');
+
+        if (mainNavLinks && sessionSidebarContent) {
+            sessionSidebarContent.style.display = 'none';
+            mainNavLinks.style.display = 'block';
+            sessionSidebarContent.innerHTML = '';
         }
     }
 
@@ -191,6 +207,12 @@ const App = (() => {
         if (typeof eventManager !== 'undefined') {
             eventManager.subscribe('SESSION_CREATED', () => {
                 showView('study-spaces');
+            });
+
+            eventManager.subscribe('OPEN_SESSION', (session) => {
+                if (sessionController) {
+                    sessionController.openSession(session);
+                }
             });
         }
     }

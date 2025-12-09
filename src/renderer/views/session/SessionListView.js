@@ -34,6 +34,7 @@ class SessionListView {
         this.sessionNameInput = document.getElementById('session-name');
         this.dropZone = document.getElementById('drop-zone');
         this.fileList = document.getElementById('file-list');
+        this.fileInput = document.getElementById('session-file-input');
 
         this.bindModalEvents();
     }
@@ -41,11 +42,6 @@ class SessionListView {
     cacheViewDOM() {
         this.sessionsGrid = document.getElementById('sessions-grid');
     }
-
-    // The original cacheDOM and bindEvents methods are no longer needed in their previous form
-    // as their responsibilities are split into initModal, cacheViewDOM, and bindModalEvents.
-    // Keeping them empty or removing them based on the user's provided structure.
-    // The user's instruction implies replacing the old structure with the new one.
 
     bindModalEvents() {
         if (this.closeModalBtn) this.closeModalBtn.addEventListener('click', () => this.closeModal());
@@ -74,6 +70,19 @@ class SessionListView {
             });
 
             this.dropZone.addEventListener('drop', (e) => this.handleDrop(e), false);
+
+            // Click to select files
+            this.dropZone.addEventListener('click', () => {
+                if (this.fileInput) this.fileInput.click();
+            });
+        }
+
+        if (this.fileInput) {
+            this.fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    this.handleFiles(e.target.files);
+                }
+            });
         }
 
         // Listen for global event to open modal
@@ -123,6 +132,7 @@ class SessionListView {
         this.modal.style.display = 'flex';
         this.sessionNameInput.value = '';
         this.uploadedFiles = [];
+        if (this.fileInput) this.fileInput.value = ''; // Clear file input
         this.renderFileList();
         this.sessionNameInput.focus();
     }

@@ -10,46 +10,6 @@ class ActiveSessionView {
         return `
         <div id="active-session" class="view-section">
             <div class="session-container">
-                <aside class="session-sidebar" id="session-sidebar">
-                    <!-- Documents Section -->
-                    <div class="sidebar-section">
-                        <div class="section-title-row">
-                            <h3 class="section-title">
-                                <i class="fas fa-folder-open"></i> Documenti
-                            </h3>
-                            <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <ul id="session-file-list" class="session-file-list">
-                            <!-- Files will be injected here -->
-                        </ul>
-                    </div>
-
-                    <!-- Flashcards Section -->
-                    <div class="sidebar-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-layer-group"></i> Flashcard
-                        </h3>
-                        <div class="flashcard-actions">
-                            <button class="btn btn-primary btn-sm" id="create-flashcard-btn">
-                                <i class="fas fa-plus"></i> Crea
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="import-flashcard-btn">
-                                <i class="fas fa-file-import"></i> Importa
-                            </button>
-                        </div>
-                        <ul id="flashcard-list" class="flashcard-list">
-                            <!-- Flashcards will be injected here -->
-                        </ul>
-                    </div>
-                </aside>
-                <div class="resizer-container">
-                    <button id="toggle-sidebar-btn" class="sidebar-toggle-btn" title="Toggle Sidebar">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="resizer" id="session-resizer"></div>
-                </div>
                 <main class="session-main">
                     <header class="session-header">
                         <h2 id="active-session-title">Spazio</h2>
@@ -109,59 +69,109 @@ class ActiveSessionView {
     init() {
         this.cacheDOM();
         this.bindEvents();
+        this.showSidebar();
     }
 
     cacheDOM() {
         this.sessionView = document.getElementById('active-session');
         this.sessionTitle = document.getElementById('active-session-title');
-        this.sessionFileList = document.getElementById('session-file-list');
         this.editorElement = document.getElementById('rich-text-editor');
         this.autoSaveStatus = document.getElementById('auto-save-status');
         this.autoSaveText = document.getElementById('auto-save-text');
-        this.sessionSidebar = document.getElementById('session-sidebar');
-        this.sessionResizer = document.getElementById('session-resizer');
-        this.toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
-        this.addDocumentBtn = document.getElementById('add-document-btn');
+
+        // Main Sidebar Elements
+        this.mainNavLinks = document.getElementById('main-nav-links');
+        this.sessionSidebarContent = document.getElementById('session-sidebar-content');
     }
 
     bindEvents() {
         // Quill gestisce la toolbar automaticamente, non serve bindare eventi
+    }
 
-        if (this.sessionResizer) {
-            this.sessionResizer.addEventListener('mousedown', (e) => this.initResize(e));
+    showSidebar() {
+        if (this.mainNavLinks && this.sessionSidebarContent) {
+            this.mainNavLinks.style.display = 'none';
+            this.sessionSidebarContent.style.display = 'flex';
+            this.sessionSidebarContent.style.flexDirection = 'column';
+            this.renderSidebar();
         }
+    }
 
-        if (this.toggleSidebarBtn) {
-            this.toggleSidebarBtn.addEventListener('click', () => this.toggleSidebar());
+    hideSidebar() {
+        if (this.mainNavLinks && this.sessionSidebarContent) {
+            this.sessionSidebarContent.style.display = 'none';
+            this.mainNavLinks.style.display = 'block';
+            this.sessionSidebarContent.innerHTML = ''; // Clean up
+        }
+    }
+
+    renderSidebar() {
+        if (!this.sessionSidebarContent) return;
+
+        this.sessionSidebarContent.innerHTML = `
+            <div class="sidebar-back-btn-container" style="padding: 0 20px 20px 20px;">
+                <button id="back-to-home-btn" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: rgba(255,255,255,0.1); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-arrow-left"></i> Torna alla Home
+                </button>
+            </div>
+
+            <!-- Documents Section -->
+            <div class="sidebar-section" style="padding: 0 20px 20px 20px;">
+                <div class="section-title-row">
+                    <h3 class="section-title" style="color: var(--text-light); border-bottom-color: var(--accent-color);">
+                        <i class="fas fa-folder-open" style="color: var(--accent-color);"></i> Documenti
+                    </h3>
+                    <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti" style="border-color: var(--accent-color); color: var(--accent-color);">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <ul id="session-file-list" class="session-file-list">
+                    <!-- Files will be injected here -->
+                </ul>
+            </div>
+
+            <!-- Flashcards Section -->
+            <div class="sidebar-section" style="padding: 0 20px;">
+                <h3 class="section-title" style="color: var(--text-light); border-bottom-color: var(--accent-color);">
+                    <i class="fas fa-layer-group" style="color: var(--accent-color);"></i> Flashcard
+                </h3>
+                <div class="flashcard-actions">
+                    <button class="btn btn-primary btn-sm" id="create-flashcard-btn" style="background-color: var(--accent-color); color: var(--primary-dark);">
+                        <i class="fas fa-plus"></i> Crea
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="import-flashcard-btn" style="background-color: rgba(255,255,255,0.1); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="fas fa-file-import"></i> Importa
+                    </button>
+                </div>
+                <ul id="flashcard-list" class="flashcard-list">
+                    <!-- Flashcards will be injected here -->
+                </ul>
+            </div>
+        `;
+
+        // Cache new elements
+        this.sessionFileList = document.getElementById('session-file-list');
+        this.addDocumentBtn = document.getElementById('add-document-btn');
+
+        // Bind events for new elements
+        const backBtn = document.getElementById('back-to-home-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                if (typeof App !== 'undefined' && App.showView) {
+                    App.showView('home');
+                }
+            });
         }
 
         if (this.addDocumentBtn) {
             this.addDocumentBtn.addEventListener('click', () => this.controller.addDocuments());
         }
-    }
 
-    initResize(e) {
-        e.preventDefault();
-        const resize = (e) => {
-            if (!this.sessionSidebar) return;
-            const newWidth = e.clientX - this.sessionSidebar.getBoundingClientRect().left;
-            if (newWidth > 150 && newWidth < 600) {
-                this.sessionSidebar.style.width = `${newWidth}px`;
-            }
-        };
-        const stopResize = () => {
-            window.removeEventListener('mousemove', resize);
-            window.removeEventListener('mouseup', stopResize);
-            this.sessionResizer.classList.remove('resizing');
-        };
-        window.addEventListener('mousemove', resize);
-        window.addEventListener('mouseup', stopResize);
-        this.sessionResizer.classList.add('resizing');
-    }
-
-    toggleSidebar() {
-        if (this.sessionSidebar) {
-            this.sessionSidebar.classList.toggle('collapsed');
+        // Re-render lists if data is available
+        const currentSession = this.controller.model.getCurrentSession();
+        if (currentSession) {
+            this.renderFileList(currentSession.files);
+            // Flashcards are rendered by FlashcardView, but we need to make sure the container exists
         }
     }
 

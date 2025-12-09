@@ -21,13 +21,6 @@ class HomeView {
                         <h3>Nuovo Spazio</h3>
                         <p>Crea un nuovo spazio di studio.</p>
                     </div>
-                    <div class="card">
-                        <div class="card-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3>Recenti</h3>
-                        <p>Riprendi da dove avevi lasciato.</p>
-                    </div>
                 </div>
             </section>
 
