@@ -2,6 +2,8 @@ class FlashcardView {
     constructor(controller) {
         this.controller = controller;
         this.currentDeckId = null;
+        this.studyDeck = null;
+        this.currentCardIndex = 0;
     }
 
     init() {
@@ -67,6 +69,42 @@ class FlashcardView {
         `;
         document.body.appendChild(cardModal);
 
+        // Study Modal
+        const studyModal = document.createElement('div');
+        studyModal.id = 'study-modal';
+        studyModal.className = 'modal';
+        studyModal.innerHTML = `
+            <div class="study-modal-content">
+                <button class="close-study-btn" title="Chiudi"><i class="fas fa-times"></i></button>
+                <div class="study-container">
+                    <div class="flip-card" id="study-flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="card-label">Domanda</div>
+                                <div class="card-content" id="study-card-front"></div>
+                                <div class="card-hint">Clicca per girare</div>
+                            </div>
+                            <div class="flip-card-back">
+                                <div class="card-label">Risposta</div>
+                                <div class="card-content" id="study-card-back"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="study-controls">
+                        <button class="control-btn" id="study-prev-btn" title="Precedente">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="progress-indicator" id="study-progress">1 / 10</div>
+                        <button class="control-btn" id="study-next-btn" title="Successiva">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(studyModal);
+
         this.bindModalEvents();
     }
 
@@ -123,6 +161,48 @@ class FlashcardView {
         window.addEventListener('click', (e) => {
             if (e.target === deckModal) closeDeckModal();
             if (e.target === cardModal) closeCardModal();
+            if (e.target === document.getElementById('study-modal')) {
+                document.getElementById('study-modal').style.display = 'none';
+            }
+        });
+
+        // Study Modal Events
+        const studyModal = document.getElementById('study-modal');
+        const flipCard = document.getElementById('study-flip-card');
+        const prevBtn = document.getElementById('study-prev-btn');
+        const nextBtn = document.getElementById('study-next-btn');
+        const closeStudyBtn = studyModal.querySelector('.close-study-btn');
+
+        if (flipCard) {
+            flipCard.addEventListener('click', () => this.flipCard());
+        }
+
+        if (prevBtn) prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.prevCard();
+        });
+
+        if (nextBtn) nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.nextCard();
+        });
+
+        if (closeStudyBtn) closeStudyBtn.addEventListener('click', () => {
+            studyModal.style.display = 'none';
+        });
+
+        // Keyboard navigation for study modal
+        document.addEventListener('keydown', (e) => {
+            if (studyModal.style.display === 'flex') {
+                if (e.key === 'ArrowLeft') this.prevCard();
+                else if (e.key === 'ArrowRight') this.nextCard();
+                else if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault(); // Prevent scrolling
+                    this.flipCard();
+                } else if (e.key === 'Escape') {
+                    studyModal.style.display = 'none';
+                }
+            }
         });
     }
 
@@ -170,9 +250,14 @@ class FlashcardView {
                         <i class="fas fa-layer-group deck-icon"></i>
                         <span class="deck-name">${deck.name}</span>
                     </div>
-                    <button class="btn-icon-small add-card-btn" title="Aggiungi Card">
-                        <i class="fas fa-plus"></i>
-                    </button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn-icon-small study-deck-btn" title="Studia">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="btn-icon-small add-card-btn" title="Aggiungi Card">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="deck-stats">
                     <div class="stat-item review" title="Da rivedere">
@@ -193,7 +278,74 @@ class FlashcardView {
                 this.showCreateCardModal(deck.id);
             });
 
+            // Event listener per studiare
+            const studyBtn = deckItem.querySelector('.study-deck-btn');
+            studyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.startStudySession(deck);
+            });
+
             this.flashcardList.appendChild(deckItem);
         });
+    }
+
+    startStudySession(deck) {
+        if (!deck || !deck.cards || deck.cards.length === 0) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Attenzione', 'Questo mazzo è vuoto!', 'warning');
+            }
+            return;
+        }
+
+        this.studyDeck = deck;
+        this.currentCardIndex = 0;
+
+        const modal = document.getElementById('study-modal');
+        modal.style.display = 'flex';
+
+        this.renderCurrentCard();
+    }
+
+    renderCurrentCard() {
+        if (!this.studyDeck) return;
+
+        const card = this.studyDeck.cards[this.currentCardIndex];
+        const frontEl = document.getElementById('study-card-front');
+        const backEl = document.getElementById('study-card-back');
+        const progressEl = document.getElementById('study-progress');
+        const flipCard = document.getElementById('study-flip-card');
+        const prevBtn = document.getElementById('study-prev-btn');
+        const nextBtn = document.getElementById('study-next-btn');
+
+        // Reset flip state
+        flipCard.classList.remove('flipped');
+
+        // Update content
+        frontEl.textContent = card.question;
+        backEl.textContent = card.answer;
+        progressEl.textContent = `${this.currentCardIndex + 1} / ${this.studyDeck.cards.length}`;
+
+        // Update buttons state
+        prevBtn.disabled = this.currentCardIndex === 0;
+        nextBtn.disabled = this.currentCardIndex === this.studyDeck.cards.length - 1;
+    }
+
+    flipCard() {
+        const flipCard = document.getElementById('study-flip-card');
+        flipCard.classList.toggle('flipped');
+    }
+
+    nextCard() {
+        if (this.studyDeck && this.currentCardIndex < this.studyDeck.cards.length - 1) {
+            this.currentCardIndex++;
+            this.renderCurrentCard();
+        }
+    }
+
+    prevCard() {
+        if (this.studyDeck && this.currentCardIndex > 0) {
+            this.currentCardIndex--;
+            this.renderCurrentCard();
+        }
     }
 }
