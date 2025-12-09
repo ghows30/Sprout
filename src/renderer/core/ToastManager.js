@@ -3,7 +3,7 @@ class ToastManager {
         this.container = document.getElementById('toast-container');
     }
 
-    show(title, message, type = 'info', duration = 4000) {
+    show(title, message, type = 'info', duration = 2500) {
         if (!this.container) {
             this.container = document.getElementById('toast-container');
             if (!this.container) return;

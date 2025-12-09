@@ -282,6 +282,30 @@ class SessionController {
         this.flashcardView.render(currentSession.decks);
     }
 
+    async updateFlashcardStatus(deckId, cardId, status) {
+        const currentSession = this.model.getCurrentSession();
+        if (!currentSession || !currentSession.decks) return;
+
+        const deck = currentSession.decks.find(d => d.id === deckId);
+        if (!deck) return;
+
+        const card = deck.cards.find(c => c.id === cardId);
+        if (!card) return;
+
+        card.status = status;
+        card.lastReviewed = new Date().toISOString();
+
+        // Salva il mazzo aggiornato
+        const result = await this.model.saveDeck(deck);
+
+        if (result.success) {
+            // Aggiorna la vista principale (conteggi)
+            this.flashcardView.render(currentSession.decks);
+            return true;
+        }
+        return false;
+    }
+
     openDocument(file, fileName) {
         const currentSession = this.model.getCurrentSession();
         if (!currentSession) return;

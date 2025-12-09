@@ -3,7 +3,10 @@ class FlashcardView {
         this.controller = controller;
         this.currentDeckId = null;
         this.studyDeck = null;
+        this.currentDeckId = null;
+        this.studyDeck = null;
         this.currentCardIndex = 0;
+        this.history = new StudyHistory();
     }
 
     init() {
@@ -100,10 +103,49 @@ class FlashcardView {
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
+                    
+                    <div class="study-actions">
+                        <button class="btn-action review-btn" id="mark-review-btn">
+                            <i class="fas fa-history"></i> Da Rivedere
+                        </button>
+                        <button class="btn-action consolidated-btn" id="mark-consolidated-btn">
+                            <i class="fas fa-check-circle"></i> Consolidato
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button class="btn-text-icon" id="study-undo-btn" disabled>
+                            <i class="fas fa-undo"></i> Annulla ultima azione
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
         document.body.appendChild(studyModal);
+
+        // Study Selection Modal
+        const selectionModal = document.createElement('div');
+        selectionModal.id = 'study-selection-modal';
+        selectionModal.className = 'modal';
+        selectionModal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px; text-align: center;">
+                <span class="close-modal">&times;</span>
+                <h2>Cosa vuoi studiare?</h2>
+                <p style="color: var(--text-muted); margin-bottom: 20px;">Questo mazzo contiene carte miste.</p>
+                <div class="selection-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-primary" id="study-all-btn" style="width: 100%; justify-content: center;">
+                        Tutto (<span id="count-all">0</span>)
+                    </button>
+                    <button class="btn btn-secondary" id="study-review-btn" style="width: 100%; justify-content: center; border-color: #ff9f43; color: #ff9f43;">
+                        Da Rivedere (<span id="count-review">0</span>)
+                    </button>
+                    <button class="btn btn-secondary" id="study-consolidated-btn" style="width: 100%; justify-content: center; border-color: #2ecc71; color: #2ecc71;">
+                        Consolidate (<span id="count-consolidated">0</span>)
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(selectionModal);
 
         this.bindModalEvents();
     }
@@ -161,9 +203,7 @@ class FlashcardView {
         window.addEventListener('click', (e) => {
             if (e.target === deckModal) closeDeckModal();
             if (e.target === cardModal) closeCardModal();
-            if (e.target === document.getElementById('study-modal')) {
-                document.getElementById('study-modal').style.display = 'none';
-            }
+            // Removed study modal close on outside click as requested
         });
 
         // Study Modal Events
@@ -172,6 +212,9 @@ class FlashcardView {
         const prevBtn = document.getElementById('study-prev-btn');
         const nextBtn = document.getElementById('study-next-btn');
         const closeStudyBtn = studyModal.querySelector('.close-study-btn');
+        const reviewBtn = document.getElementById('mark-review-btn');
+        const consolidatedBtn = document.getElementById('mark-consolidated-btn');
+        const undoBtn = document.getElementById('study-undo-btn');
 
         if (flipCard) {
             flipCard.addEventListener('click', () => this.flipCard());
@@ -191,6 +234,10 @@ class FlashcardView {
             studyModal.style.display = 'none';
         });
 
+        if (reviewBtn) reviewBtn.addEventListener('click', () => this.markCardStatus('review'));
+        if (consolidatedBtn) consolidatedBtn.addEventListener('click', () => this.markCardStatus('consolidated'));
+        if (undoBtn) undoBtn.addEventListener('click', () => this.undoLastAction());
+
         // Keyboard navigation for study modal
         document.addEventListener('keydown', (e) => {
             if (studyModal.style.display === 'flex') {
@@ -201,8 +248,49 @@ class FlashcardView {
                     this.flipCard();
                 } else if (e.key === 'Escape') {
                     studyModal.style.display = 'none';
+                } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    this.undoLastAction();
                 }
             }
+        });
+
+        // Selection Modal Events
+        const selectionModal = document.getElementById('study-selection-modal');
+        const studyAllBtn = document.getElementById('study-all-btn');
+        const studyReviewBtn = document.getElementById('study-review-btn');
+        const studyConsolidatedBtn = document.getElementById('study-consolidated-btn');
+
+        const closeSelectionModal = () => {
+            selectionModal.style.display = 'none';
+            this.studyDeck = null; // Reset if cancelled
+        };
+
+        selectionModal.querySelectorAll('.close-modal').forEach(el => {
+            el.addEventListener('click', closeSelectionModal);
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === selectionModal) closeSelectionModal();
+        });
+
+        if (studyAllBtn) studyAllBtn.addEventListener('click', () => {
+            selectionModal.style.display = 'none';
+            this.launchStudyMode(this.studyDeck);
+        });
+
+        if (studyReviewBtn) studyReviewBtn.addEventListener('click', () => {
+            selectionModal.style.display = 'none';
+            const filteredDeck = { ...this.studyDeck };
+            filteredDeck.cards = this.studyDeck.cards.filter(c => c.status === 'review' || c.status === 'new');
+            this.launchStudyMode(filteredDeck);
+        });
+
+        if (studyConsolidatedBtn) studyConsolidatedBtn.addEventListener('click', () => {
+            selectionModal.style.display = 'none';
+            const filteredDeck = { ...this.studyDeck };
+            filteredDeck.cards = this.studyDeck.cards.filter(c => c.status === 'consolidated');
+            this.launchStudyMode(filteredDeck);
         });
     }
 
@@ -297,8 +385,37 @@ class FlashcardView {
             return;
         }
 
+        // Store the original deck temporarily
+        this.studyDeck = deck;
+
+        const reviewCards = deck.cards.filter(c => c.status === 'review' || c.status === 'new');
+        const consolidatedCards = deck.cards.filter(c => c.status === 'consolidated');
+
+        // Se ci sono carte in entrambi gli stati, mostra il modale di selezione
+        if (reviewCards.length > 0 && consolidatedCards.length > 0) {
+            this.showStudySelectionModal(deck.cards.length, reviewCards.length, consolidatedCards.length);
+            return;
+        }
+
+        // Altrimenti procedi come prima (tutto il mazzo)
+        this.launchStudyMode(deck);
+    }
+
+    showStudySelectionModal(total, review, consolidated) {
+        const modal = document.getElementById('study-selection-modal');
+        if (!modal) return;
+
+        document.getElementById('count-all').textContent = total;
+        document.getElementById('count-review').textContent = review;
+        document.getElementById('count-consolidated').textContent = consolidated;
+
+        modal.style.display = 'flex';
+    }
+
+    launchStudyMode(deck) {
         this.studyDeck = deck;
         this.currentCardIndex = 0;
+        this.history.clear(); // Reset history for new session
 
         const modal = document.getElementById('study-modal');
         modal.style.display = 'flex';
@@ -316,6 +433,7 @@ class FlashcardView {
         const flipCard = document.getElementById('study-flip-card');
         const prevBtn = document.getElementById('study-prev-btn');
         const nextBtn = document.getElementById('study-next-btn');
+        const undoBtn = document.getElementById('study-undo-btn');
 
         // Reset flip state
         flipCard.classList.remove('flipped');
@@ -328,6 +446,27 @@ class FlashcardView {
         // Update buttons state
         prevBtn.disabled = this.currentCardIndex === 0;
         nextBtn.disabled = this.currentCardIndex === this.studyDeck.cards.length - 1;
+
+        // Update undo button state
+        if (undoBtn) {
+            undoBtn.disabled = this.history.isEmpty();
+            undoBtn.style.opacity = this.history.isEmpty() ? '0.3' : '1';
+        }
+
+        // Highlight active status
+        const reviewBtn = document.getElementById('mark-review-btn');
+        const consolidatedBtn = document.getElementById('mark-consolidated-btn');
+
+        if (reviewBtn && consolidatedBtn) {
+            reviewBtn.classList.remove('active');
+            consolidatedBtn.classList.remove('active');
+
+            if (card.status === 'review') {
+                reviewBtn.classList.add('active');
+            } else if (card.status === 'consolidated') {
+                consolidatedBtn.classList.add('active');
+            }
+        }
     }
 
     flipCard() {
@@ -346,6 +485,68 @@ class FlashcardView {
         if (this.studyDeck && this.currentCardIndex > 0) {
             this.currentCardIndex--;
             this.renderCurrentCard();
+        }
+    }
+
+    async markCardStatus(status) {
+        if (!this.studyDeck) return;
+
+        // Remove focus from button to prevent sticky visual state
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+
+        const card = this.studyDeck.cards[this.currentCardIndex];
+        if (!card) return;
+
+        // Create Memento before changing state
+        const memento = new StudyMemento(card.id, card.status, this.currentCardIndex);
+        this.history.push(memento);
+
+        // Aggiorna lo stato tramite il controller
+        const success = await this.controller.updateFlashcardStatus(this.studyDeck.id, card.id, status);
+
+        if (success) {
+            // Aggiorna anche l'oggetto locale per riflettere il cambiamento immediato se necessario
+            card.status = status;
+
+            // Passa alla prossima carta se non siamo all'ultima
+            if (this.currentCardIndex < this.studyDeck.cards.length - 1) {
+                this.nextCard();
+            } else {
+                // Se siamo all'ultima carta, mostra un feedback o chiudi (per ora rimaniamo qui)
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Completato', 'Hai raggiunto la fine del mazzo!', 'success');
+                }
+                // Update UI to enable Undo even if we don't move
+                this.renderCurrentCard();
+            }
+        }
+    }
+
+    async undoLastAction() {
+        const memento = this.history.pop();
+        if (!memento) return;
+
+        // Restore state in backend
+        const success = await this.controller.updateFlashcardStatus(this.studyDeck.id, memento.cardId, memento.previousStatus);
+
+        if (success) {
+            // Restore local state
+            const card = this.studyDeck.cards.find(c => c.id === memento.cardId);
+            if (card) {
+                card.status = memento.previousStatus;
+            }
+
+            // Restore navigation
+            this.currentCardIndex = memento.cardIndex;
+
+            // Update UI
+            this.renderCurrentCard();
+
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Annullato', 'Azione annullata', 'info');
+            }
         }
     }
 }
