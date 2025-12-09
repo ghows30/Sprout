@@ -108,3 +108,9 @@ Permette di salvare lo stato di un oggetto per poterlo ripristinare successivame
 -   `StudyMemento.js`: Rappresenta l'istantanea dello stato (ID carta, stato precedente, indice).
 -   `StudyHistory.js` (Caretaker): Gestisce la pila (stack) dei memento salvati.
 -   `FlashcardView.js` (Originator): Crea i memento prima di ogni modifica e li usa per ripristinare lo stato quando l'utente preme "Annulla".
+
+Pattern 5: **Adapter Pattern (Import flashcard)**
+Isola il parsing dei formati di import da CSV/JSON in adapter dedicati e permette di estendere facilmente nuovi formati.
+-   `importers/FlashcardImportService.js`: orchestration layer che seleziona l'adapter corretto e normalizza l'output in draft di flashcard.
+-   `importers/adapters/CsvFlashcardAdapter.js` e `JsonFlashcardAdapter.js`: incapsulano il parsing rispettivamente di CSV (separatori/quote configurabili, fallback senza header) e JSON (array o `{ cards: [] }`).
+-   `FlashcardView.js`: usa il service e presenta l'UI per scegliere formato/opzioni; il dominio vede solo DTO normalizzati (`question`, `answer`, `deck`, `status`).
