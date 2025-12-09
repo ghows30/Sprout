@@ -549,14 +549,88 @@
     box-shadow: var(--shadow-sm);
 }
 
-.flashcard-question {
-    font-weight: 600;
-    color: var(--text-light);
-    /* Changed for dark sidebar */
-    margin-bottom: 5px;
+/* Sidebar Components */
+.sidebar-back-btn-container {
+    padding: 0 20px 20px 20px;
 }
 
-.flashcard-answer {
-    font-size: 0.85rem;
-    color: var(--text-muted);
+.sidebar-back-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-section {
+    padding: 0 20px 20px 20px;
+}
+
+.section-title {
+    color: var(--text-light);
+    border-bottom-color: var(--accent-color);
+}
+
+.section-title i {
+    color: var(--accent-color);
+}
+
+.add-document-btn {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.create-flashcard-btn {
+    background-color: var(--accent-color);
+    color: var(--primary-dark);
+}
+
+.import-flashcard-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Text Truncation */
+.session-file-item span,
+.flashcard-question,
+.file-category-header span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.session-file-item {
+    min-width: 0;
+    /* Enable flex item shrinking */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+
+    .sidebar-back-btn-container,
+    .sidebar-section {
+        padding: 0 10px 15px 10px;
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+    }
+
+    .session-file-item {
+        font-size: 0.85rem;
+        padding: 8px;
+    }
+
+    .flashcard-actions {
+        flex-direction: column;
+    }
+
+    .flashcard-actions .btn {
+        width: 100%;
+    }
 }

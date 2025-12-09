@@ -134,3 +134,26 @@
 .resizer.resizing {
     background-color: var(--primary-light);
 }
+
+/* Responsive Sidebar */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 220px;
+        padding: 15px;
+    }
+
+    .sidebar.collapsed {
+        width: 60px !important;
+        padding: 15px 5px;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    .nav-link {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+}

@@ -109,19 +109,19 @@ class ActiveSessionView {
         if (!this.sessionSidebarContent) return;
 
         this.sessionSidebarContent.innerHTML = `
-            <div class="sidebar-back-btn-container" style="padding: 0 20px 20px 20px;">
-                <button id="back-to-home-btn" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: rgba(255,255,255,0.1); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2);">
+            <div class="sidebar-back-btn-container">
+                <button id="back-to-home-btn" class="btn btn-secondary sidebar-back-btn">
                     <i class="fas fa-arrow-left"></i> Torna alla Home
                 </button>
             </div>
 
             <!-- Documents Section -->
-            <div class="sidebar-section" style="padding: 0 20px 20px 20px;">
+            <div class="sidebar-section">
                 <div class="section-title-row">
-                    <h3 class="section-title" style="color: var(--text-light); border-bottom-color: var(--accent-color);">
-                        <i class="fas fa-folder-open" style="color: var(--accent-color);"></i> Documenti
+                    <h3 class="section-title">
+                        <i class="fas fa-folder-open"></i> Documenti
                     </h3>
-                    <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti" style="border-color: var(--accent-color); color: var(--accent-color);">
+                    <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -131,15 +131,15 @@ class ActiveSessionView {
             </div>
 
             <!-- Flashcards Section -->
-            <div class="sidebar-section" style="padding: 0 20px;">
-                <h3 class="section-title" style="color: var(--text-light); border-bottom-color: var(--accent-color);">
-                    <i class="fas fa-layer-group" style="color: var(--accent-color);"></i> Flashcard
+            <div class="sidebar-section">
+                <h3 class="section-title">
+                    <i class="fas fa-layer-group"></i> Flashcard
                 </h3>
                 <div class="flashcard-actions">
-                    <button class="btn btn-primary btn-sm" id="create-flashcard-btn" style="background-color: var(--accent-color); color: var(--primary-dark);">
+                    <button class="btn btn-primary btn-sm create-flashcard-btn" id="create-flashcard-btn">
                         <i class="fas fa-plus"></i> Crea
                     </button>
-                    <button class="btn btn-secondary btn-sm" id="import-flashcard-btn" style="background-color: rgba(255,255,255,0.1); color: var(--text-light); border: 1px solid rgba(255,255,255,0.2);">
+                    <button class="btn btn-secondary btn-sm import-flashcard-btn" id="import-flashcard-btn">
                         <i class="fas fa-file-import"></i> Importa
                     </button>
                 </div>
