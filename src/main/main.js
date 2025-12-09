@@ -430,6 +430,74 @@ app.whenReady().then(() => {
             return { success: false, error: error.message };
         }
     });
+    // Save a deck
+    ipcMain.handle('save-deck', async (event, { sessionPath, deck }) => {
+        try {
+            if (!sessionPath || !deck) {
+                throw new Error('Missing sessionPath or deck');
+            }
+
+            const flashcardsDir = path.join(sessionPath, 'flashcards');
+            if (!fs.existsSync(flashcardsDir)) {
+                fs.mkdirSync(flashcardsDir, { recursive: true });
+            }
+
+            const safeDeckName = deck.name.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+            const deckDir = path.join(flashcardsDir, safeDeckName);
+
+            if (!fs.existsSync(deckDir)) {
+                fs.mkdirSync(deckDir, { recursive: true });
+            }
+
+            const deckFile = path.join(deckDir, 'data.json');
+
+            // Update lastModified
+            deck.lastModified = new Date().toISOString();
+
+            fs.writeFileSync(deckFile, JSON.stringify(deck, null, 2));
+            return { success: true, path: deckDir };
+        } catch (error) {
+            console.error('Error saving deck:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Load decks
+    ipcMain.handle('load-decks', async (event, { sessionPath }) => {
+        try {
+            if (!sessionPath) {
+                throw new Error('Missing sessionPath');
+            }
+
+            const flashcardsDir = path.join(sessionPath, 'flashcards');
+            if (!fs.existsSync(flashcardsDir)) {
+                return { success: true, decks: [] };
+            }
+
+            const decks = [];
+            const items = fs.readdirSync(flashcardsDir, { withFileTypes: true });
+
+            for (const item of items) {
+                if (item.isDirectory()) {
+                    const deckFile = path.join(flashcardsDir, item.name, 'data.json');
+                    if (fs.existsSync(deckFile)) {
+                        try {
+                            const data = fs.readFileSync(deckFile, 'utf8');
+                            const deck = JSON.parse(data);
+                            decks.push(deck);
+                        } catch (e) {
+                            console.error(`Error reading deck in ${item.name}:`, e);
+                        }
+                    }
+                }
+            }
+
+            return { success: true, decks };
+        } catch (error) {
+            console.error('Error loading decks:', error);
+            return { success: false, error: error.message };
+        }
+    });
 });
 
 app.on('window-all-closed', () => {

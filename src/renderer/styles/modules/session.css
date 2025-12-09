@@ -549,7 +549,123 @@
     box-shadow: var(--shadow-sm);
 }
 
-/* Sidebar Components */
+/* Deck Styles */
+.deck-item {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.deck-item:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.deck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.deck-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    flex: 1;
+}
+
+.deck-icon {
+    color: var(--accent-color);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.deck-name {
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-icon-small {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: none;
+    background-color: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    opacity: 0;
+    /* Show on hover */
+}
+
+.deck-item:hover .btn-icon-small {
+    opacity: 1;
+}
+
+.btn-icon-small:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+
+.deck-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 2px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    padding: 0;
+    border: none;
+}
+
+.stat-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.stat-item.review .stat-count {
+    color: #ff9f43;
+}
+
+.stat-item.consolidated .stat-count {
+    color: #2ecc71;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+    display: none;
+    /* Hide label for compactness, just show numbers with color */
+}
+
+/* Optional: Show tooltip or full label on hover if needed, but for now keep it minimal */
+.stat-item::after {
+    content: attr(title);
+    display: none;
+}
+
 .sidebar-back-btn-container {
     padding: 0 20px 20px 20px;
 }

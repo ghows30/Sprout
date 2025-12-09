@@ -218,6 +218,11 @@ class ActiveSessionView {
         }
 
         this.renderFileList(session.files);
+
+        // Renderizza i mazzi se presenti
+        if (this.controller.flashcardView) {
+            this.controller.flashcardView.render(session.decks);
+        }
     }
 
     renderFileList(files) {

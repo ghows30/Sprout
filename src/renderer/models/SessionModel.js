@@ -94,4 +94,21 @@ class SessionModel {
             sessionPath: sessionPath
         });
     }
+
+    async saveDeck(deck) {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('save-deck', {
+            sessionPath: this.currentSession.fullPath,
+            deck: deck
+        });
+    }
+
+    async loadDecks() {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('load-decks', {
+            sessionPath: this.currentSession.fullPath
+        });
+    }
 }

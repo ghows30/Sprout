@@ -117,8 +117,21 @@ class SessionController {
         }
     }
 
-    openSession(session) {
+    async openSession(session) {
         this.model.setCurrentSession(session);
+
+        // Carica i mazzi per questa sessione
+        try {
+            const decksResult = await this.model.loadDecks();
+            if (decksResult.success) {
+                session.decks = decksResult.decks;
+            } else {
+                session.decks = [];
+            }
+        } catch (error) {
+            console.error('Error loading decks:', error);
+            session.decks = [];
+        }
 
         // Switch view using App navigation
         if (typeof App !== 'undefined' && App.showView) {
@@ -213,43 +226,65 @@ class SessionController {
         }
     }
 
-    createFlashcard(question, answer) {
+    async createDeck(name) {
         const currentSession = this.model.getCurrentSession();
         if (!currentSession) return;
+
+        // Inizializza l'array dei mazzi se non esiste (per la view locale)
+        if (!currentSession.decks) {
+            currentSession.decks = [];
+        }
+
+        const deck = {
+            id: Date.now(),
+            name: name,
+            cards: [],
+            createdAt: new Date().toISOString()
+        };
+
+        // Salva su file system
+        const result = await this.model.saveDeck(deck);
+
+        if (result.success) {
+            currentSession.decks.push(deck);
+            // Non salviamo più i mazzi in session.json
+            // this.model.saveSessionData(currentSession);
+
+            // Aggiorna la vista
+            this.flashcardView.render(currentSession.decks);
+            return deck;
+        } else {
+            console.error('Failed to save deck:', result.error);
+            return null;
+        }
+    }
+
+    async createFlashcard(deckId, question, answer) {
+        const currentSession = this.model.getCurrentSession();
+        if (!currentSession || !currentSession.decks) return;
+
+        const deck = currentSession.decks.find(d => d.id === deckId);
+        if (!deck) return;
 
         const flashcard = {
             id: Date.now(),
             question: question,
             answer: answer,
+            status: 'new', // new, review, consolidated
             createdAt: new Date().toISOString()
         };
 
-        if (!currentSession.flashcards) {
-            currentSession.flashcards = [];
-        }
-        currentSession.flashcards.push(flashcard);
+        deck.cards.push(flashcard);
 
-        this.model.saveSessionData(currentSession);
-        this.flashcardView.render(currentSession.flashcards);
+        // Salva il mazzo aggiornato su file system
+        await this.model.saveDeck(deck);
+
+        this.flashcardView.render(currentSession.decks);
     }
 
     openDocument(file, fileName) {
         const currentSession = this.model.getCurrentSession();
         if (!currentSession) return;
-
-        const fullPath = `file://${currentSession.fullPath}/${file.path || file}`; // Handle both object and string path
-        // Note: file might be just the relative path string in some cases depending on how it was saved
-        // Let's check how we stored it. In main.js we store relative paths.
-        // But when we load it back, we need to construct the full path.
-        // The View passes the file object from the category list.
-
-        // Actually, let's look at how we constructed the list in ActiveSessionView.
-        // We passed { file, fileName, ext }. 'file' is the item from session.files array.
-        // session.files contains relative paths (strings) or objects?
-        // In main.js: processedFiles.push(path.join(subfolder, file.name)); -> It's a string (relative path).
-
-        // So 'file' is a string like "documents/notes.txt".
-        // fullPath should be `file://${currentSession.fullPath}/${file}`.
 
         const absolutePath = `file://${currentSession.fullPath}/${file}`;
         this.documentView.openDocument(absolutePath, fileName);
