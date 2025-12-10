@@ -13,6 +13,7 @@ class FlashcardView {
         ]);
         this.importState = this.getEmptyImportState();
         this.importSource = 'csv';
+        this.importSource = 'csv';
         this.csvOptions = { delimiter: 'auto', quote: 'auto' };
         this.lastImportedFile = null; // { file, content }
     }
@@ -41,19 +42,13 @@ class FlashcardView {
         this.importModal = document.getElementById('import-flashcards-modal');
         this.importFileInput = document.getElementById('import-file-input');
         this.importFileName = document.getElementById('import-file-name');
-        this.importSummary = document.getElementById('import-summary');
         this.importDeckSelect = document.getElementById('import-target-deck');
         this.importNewDeckInput = document.getElementById('import-new-deck-name');
-        this.importUseDeckField = document.getElementById('import-use-deck-field');
         this.importConfirmBtn = document.getElementById('confirm-import-btn');
         this.importSourceItems = document.querySelectorAll('.import-source-item');
         this.importSourceList = document.querySelector('.import-source-list');
-        this.csvDelimiterGroup = document.getElementById('csv-delimiter-group');
-        this.csvQuoteGroup = document.getElementById('csv-quote-group');
         this.importPanelTitle = document.getElementById('import-panel-title');
         this.importPanelDesc = document.getElementById('import-panel-desc');
-        this.csvOptionsPanel = document.getElementById('csv-options-panel');
-        this.jsonOptionsPanel = document.getElementById('json-options-panel');
     }
 
     bindGlobalDelegates() {
@@ -64,19 +59,6 @@ class FlashcardView {
                 this.cacheDOM();
                 this.setImportSource(sourceItem.dataset.source);
                 return;
-            }
-
-            const delimiterPill = e.target.closest('#csv-delimiter-group .import-pill');
-            if (delimiterPill && document.body.contains(delimiterPill)) {
-                this.cacheDOM();
-                this.setCsvDelimiter(delimiterPill.dataset.delimiter);
-                return;
-            }
-
-            const quotePill = e.target.closest('#csv-quote-group .import-pill');
-            if (quotePill && document.body.contains(quotePill)) {
-                this.cacheDOM();
-                this.setCsvQuote(quotePill.dataset.quote);
             }
         });
     }
@@ -156,32 +138,7 @@ class FlashcardView {
                         <div class="import-main">
                             <div class="import-header">
                                 <h2 id="import-panel-title">Import CSV</h2>
-                                <p id="import-panel-desc">Seleziona un file .csv o .json con campi question, answer (opzionale: deck, status).</p>
-                            </div>
-
-                            <div id="csv-options-panel" class="import-options">
-                                <div class="option-group">
-                                    <span class="option-label">Separatore</span>
-                                    <div class="option-pills" id="csv-delimiter-group">
-                                        <button class="import-pill active" data-delimiter="auto">Auto</button>
-                                        <button class="import-pill" data-delimiter=",">,</button>
-                                        <button class="import-pill" data-delimiter=";">;</button>
-                                        <button class="import-pill" data-delimiter="\t">Tab</button>
-                                        <button class="import-pill" data-delimiter="|">|</button>
-                                    </div>
-                                </div>
-                                <div class="option-group">
-                                    <span class="option-label">Quote</span>
-                                    <div class="option-pills" id="csv-quote-group">
-                                        <button class="import-pill" data-quote="none">Nessuna</button>
-                                        <button class="import-pill active" data-quote="auto">Auto</button>
-                                        <button class="import-pill" data-quote='"'>"</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="json-options-panel" class="import-options" style="display: none;">
-                                <p class="json-hint">JSON supporta un array di carte o un oggetto { cards: [] }.</p>
+                                <p id="import-panel-desc">Seleziona un file .csv con campi question, answer.</p>
                             </div>
 
                             <div class="form-group">
@@ -199,13 +156,6 @@ class FlashcardView {
                                 <label for="import-target-deck">Mazzo di destinazione</label>
                                 <select id="import-target-deck" class="form-control"></select>
                                 <input type="text" id="import-new-deck-name" class="form-control" placeholder="Nome nuovo mazzo" style="display: none; margin-top: 8px;">
-                                <label class="inline-checkbox">
-                                    <input type="checkbox" id="import-use-deck-field"> Usa il campo "deck" del file (se presente)
-                                </label>
-                            </div>
-
-                            <div class="form-group">
-                                <div id="import-summary" class="import-summary">Seleziona un file per vedere l'anteprima.</div>
                             </div>
 
                             <div class="modal-actions">
@@ -378,10 +328,6 @@ class FlashcardView {
             importDeckSelect.addEventListener('change', (e) => this.onImportDeckChange(e.target.value));
         }
 
-        if (useDeckFieldCheckbox) {
-            useDeckFieldCheckbox.addEventListener('change', () => this.onUseDeckFieldToggle());
-        }
-
         if (confirmImportBtn) {
             confirmImportBtn.addEventListener('click', () => this.confirmImport());
         }
@@ -391,22 +337,6 @@ class FlashcardView {
                 const item = e.target.closest('.import-source-item');
                 if (!item || !this.importSourceList.contains(item)) return;
                 this.setImportSource(item.dataset.source);
-            });
-        }
-
-        if (this.csvDelimiterGroup) {
-            this.csvDelimiterGroup.addEventListener('click', (e) => {
-                const pill = e.target.closest('.import-pill');
-                if (!pill || !this.csvDelimiterGroup.contains(pill)) return;
-                this.setCsvDelimiter(pill.dataset.delimiter);
-            });
-        }
-
-        if (this.csvQuoteGroup) {
-            this.csvQuoteGroup.addEventListener('click', (e) => {
-                const pill = e.target.closest('.import-pill');
-                if (!pill || !this.csvQuoteGroup.contains(pill)) return;
-                this.setCsvQuote(pill.dataset.quote);
             });
         }
 
@@ -550,12 +480,10 @@ class FlashcardView {
 
         if (this.importFileInput) this.importFileInput.value = '';
         if (this.importFileName) this.importFileName.textContent = 'Nessun file selezionato';
-        if (this.importSummary) this.importSummary.textContent = 'Seleziona un file per vedere l\'anteprima.';
         if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
-        if (this.importUseDeckField) this.importUseDeckField.checked = false;
 
         this.toggleNewDeckInput(this.importDeckSelect ? this.importDeckSelect.value : '');
-        this.setImportSource('csv', { resetOptions: true, silentSummary: true });
+        this.setImportSource('csv', { resetOptions: true });
     }
 
     populateDeckOptions() {
@@ -566,10 +494,7 @@ class FlashcardView {
 
         this.importDeckSelect.innerHTML = '';
 
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = decks.length ? 'Scegli un mazzo esistente' : 'Crea un nuovo mazzo';
-        this.importDeckSelect.appendChild(placeholder);
+        this.importDeckSelect.innerHTML = '';
 
         decks.forEach(deck => {
             const option = document.createElement('option');
@@ -592,7 +517,7 @@ class FlashcardView {
         }
     }
 
-    setImportSource(source, { resetOptions = false, silentSummary = false } = {}) {
+    setImportSource(source, { resetOptions = false } = {}) {
         const previous = this.importSource;
         const safeSource = source === 'json' ? 'json' : 'csv';
         this.importSource = safeSource;
@@ -623,7 +548,7 @@ class FlashcardView {
         }
         if (this.importPanelDesc) {
             this.importPanelDesc.textContent = safeSource === 'csv'
-                ? 'Seleziona un file .csv con question, answer (opzionale: deck, status).'
+                ? 'Seleziona un file .csv con question, answer.'
                 : 'Seleziona un file .json con un array di carte o un oggetto { cards: [] }.';
         }
 
@@ -632,42 +557,12 @@ class FlashcardView {
         }
 
         if (safeSource === 'csv' && resetOptions) {
-            this.setCsvDelimiter(this.csvOptions.delimiter, null, true);
-            this.setCsvQuote(this.csvOptions.quote, null, true);
-        }
-
-        if (!silentSummary) {
-            this.renderImportSummary();
+            this.csvOptions.delimiter = 'auto';
+            this.csvOptions.quote = 'auto';
         }
     }
 
-    setCsvDelimiter(value, button = null, force = false) {
-        const parsed = value === '\\t' || value === '\t' ? '\t' : value;
-        if (!force && this.csvOptions.delimiter === parsed) return;
-        this.csvOptions.delimiter = parsed;
 
-        if (this.csvDelimiterGroup) {
-            this.csvDelimiterGroup.querySelectorAll('.import-pill').forEach(btn => {
-                const btnVal = (btn.dataset.delimiter === '\\t' || btn.dataset.delimiter === '\t') ? '\t' : btn.dataset.delimiter;
-                btn.classList.toggle('active', btnVal === parsed);
-            });
-        }
-
-        this.reparseLastFile();
-    }
-
-    setCsvQuote(value, button = null, force = false) {
-        if (!force && this.csvOptions.quote === value) return;
-        this.csvOptions.quote = value;
-
-        if (this.csvQuoteGroup) {
-            this.csvQuoteGroup.querySelectorAll('.import-pill').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.quote === value);
-            });
-        }
-
-        this.reparseLastFile();
-    }
 
     onImportDeckChange(value) {
         this.toggleNewDeckInput(value);
@@ -684,9 +579,7 @@ class FlashcardView {
         }
     }
 
-    onUseDeckFieldToggle() {
-        this.renderImportSummary();
-    }
+
 
     async handleImportFile(file, { silentToast = false } = {}) {
         try {
@@ -718,6 +611,10 @@ class FlashcardView {
             if (this.importFileName) {
                 this.importFileName.textContent = `${result.fileName} (${result.cards.length} carte valide)`;
             }
+
+            if (this.importConfirmBtn) {
+                this.importConfirmBtn.disabled = result.cards.length === 0;
+            }
         } catch (error) {
             console.error('Errore durante il parsing del file:', error);
             this.importState = this.getEmptyImportState();
@@ -726,8 +623,6 @@ class FlashcardView {
             }
             this.lastImportedFile = null;
         }
-
-        this.renderImportSummary();
     }
 
     getCurrentParseOptions() {
@@ -740,38 +635,7 @@ class FlashcardView {
         return {};
     }
 
-    reparseLastFile() {
-        if (!this.lastImportedFile) return;
-        const { file, content } = this.lastImportedFile;
-        const parseOptions = this.getCurrentParseOptions();
 
-        try {
-            let result;
-            if (content !== null && content !== undefined) {
-                result = this.importService.importFromContent(file.name, content, {
-                    adapterKey: this.importSource,
-                    parseOptions
-                });
-            } else if (file && file.path) {
-                result = this.importService.importFile(file, {
-                    adapterKey: this.importSource,
-                    parseOptions
-                });
-            } else {
-                return;
-            }
-
-            this.importState = {
-                fileName: result.fileName,
-                adapter: result.adapter,
-                cards: result.cards,
-                errors: result.errors || []
-            };
-            this.renderImportSummary();
-        } catch (error) {
-            console.error('Re-parse error:', error);
-        }
-    }
 
     readFileAsText(file) {
         return new Promise((resolve, reject) => {
@@ -784,75 +648,6 @@ class FlashcardView {
             reader.onerror = () => reject(new Error('Impossibile leggere il file selezionato'));
             reader.readAsText(file);
         });
-    }
-
-    renderImportSummary() {
-        if (!this.importSummary) return;
-
-        const { cards, errors, adapter } = this.importState;
-        const summary = this.importService.summarize(cards);
-        const deckEntries = Object.entries(summary.byDeck);
-
-        // Caso: file caricato ma 0 carte/0 errori -> messaggio esplicito
-        if (this.importState.fileName && summary.total === 0 && errors.length === 0) {
-            this.importSummary.innerHTML = `
-                <div class="summary-line">
-                    <span class="summary-label">File</span>
-                    <span>${this.importState.fileName}</span>
-                </div>
-                <div class="import-errors">
-                    Nessuna riga valida trovata. Verifica separatore/quote e che le colonne includano "question" e "answer".
-                </div>
-            `;
-            if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
-            return;
-        }
-
-        if (!cards.length && !errors.length) {
-            this.importSummary.textContent = 'Seleziona un file per vedere l\'anteprima.';
-            if (this.importConfirmBtn) this.importConfirmBtn.disabled = true;
-            return;
-        }
-
-        let deckBreakdown = '';
-        if (deckEntries.length > 0) {
-            deckBreakdown = deckEntries.map(([deckName, count]) => `
-                <div class="summary-line">
-                    <span class="summary-label">${deckName}</span>
-                    <span>${count}</span>
-                </div>
-            `).join('');
-        }
-
-        let errorsHtml = '';
-        if (errors.length > 0) {
-            const preview = errors.slice(0, 3).map(err => `<li>Riga ${err.line}: ${err.message}</li>`).join('');
-            const more = errors.length > 3 ? `<li>...altri ${errors.length - 3} errori</li>` : '';
-            errorsHtml = `
-                <div class="import-errors">
-                    <strong>${errors.length} righe con problemi:</strong>
-                    <ul>${preview}${more}</ul>
-                </div>
-            `;
-        }
-
-        this.importSummary.innerHTML = `
-            <div class="summary-line">
-                <span class="summary-label">Formato</span>
-                <span>${adapter || 'N/D'}</span>
-            </div>
-            <div class="summary-line">
-                <span class="summary-label">Carte valide</span>
-                <span>${summary.total}</span>
-            </div>
-            ${deckEntries.length ? `<div class="summary-line"><span class="summary-label">Mazzi individuati</span><span>${deckEntries.length}</span></div>` : ''}
-            ${deckBreakdown ? `<div class="deck-breakdown">${deckBreakdown}</div>` : ''}
-            ${errorsHtml}
-        `;
-
-        if (this.importConfirmBtn) {
-            this.importConfirmBtn.disabled = summary.total === 0;
-        }
     }
 
     async confirmImport() {
