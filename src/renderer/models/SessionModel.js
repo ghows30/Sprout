@@ -111,4 +111,23 @@ class SessionModel {
             sessionPath: this.currentSession.fullPath
         });
     }
+
+    async deleteDeck(deck) {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('delete-deck', {
+            sessionPath: this.currentSession.fullPath,
+            deckName: deck.name
+        });
+    }
+
+    async renameDeck(oldName, newName) {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('rename-deck', {
+            sessionPath: this.currentSession.fullPath,
+            oldName: oldName,
+            newName: newName
+        });
+    }
 }

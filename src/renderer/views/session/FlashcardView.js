@@ -786,6 +786,19 @@ class FlashcardView {
                 this.startStudySession(deck);
             });
 
+            deckItem.addEventListener('click', (e) => {
+                // Previeni l'apertura se si sta cliccando sul menu contestuale
+                if (e.target.closest('.context-menu')) return;
+                this.showDeck(deck);
+            });
+
+            // Tasto destro per il menu contestuale
+            deckItem.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.showContextMenu(e.clientX, e.clientY, deck.id, deck.name);
+            });
+
             this.flashcardList.appendChild(deckItem);
         });
     }
@@ -961,5 +974,249 @@ class FlashcardView {
                 toastManager.show('Annullato', 'Azione annullata', 'info');
             }
         }
+    }
+
+    showContextMenu(x, y, deckId, deckName) {
+        // Rimuovi eventuali menu esistenti
+        this.hideContextMenu();
+
+        // Crea il menu contestuale
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.id = 'deck-context-menu';
+        menu.innerHTML = `
+            <div class="context-menu-item" data-action="rename">
+                <i class="fas fa-edit"></i>
+                <span>Cambia nome</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item danger" data-action="delete">
+                <i class="fas fa-trash"></i>
+                <span>Elimina</span>
+            </div>
+        `;
+
+        // Posiziona il menu
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+
+        document.body.appendChild(menu);
+
+        // Aggiungi event listener alle voci del menu
+        menu.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = item.getAttribute('data-action');
+
+                if (action === 'rename') {
+                    this.showRenameDeckModal(deckId, deckName);
+                } else if (action === 'delete') {
+                    this.handleDeleteDeck(deckId, deckName);
+                }
+
+                this.hideContextMenu();
+            });
+        });
+
+        // Chiudi il menu cliccando fuori
+        setTimeout(() => {
+            document.addEventListener('click', this.hideContextMenu.bind(this), { once: true });
+        }, 0);
+    }
+
+    hideContextMenu() {
+        const menu = document.getElementById('deck-context-menu');
+        if (menu) {
+            menu.remove();
+        }
+    }
+
+    showRenameDeckModal(deckId, deckName) {
+        // Rimuovi eventuali modal esistenti
+        const existingModal = document.getElementById('rename-deck-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Crea il modal di rinomina
+        const modal = document.createElement('div');
+        modal.id = 'rename-deck-modal';
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Rinomina Mazzo</h2>
+                <div class="form-group">
+                    <label for="rename-deck-input">Nuovo nome</label>
+                    <input type="text" id="rename-deck-input" class="form-control" value="${deckName}" placeholder="Inserisci il nuovo nome">
+                    <div id="rename-error-message" style="color: #e74c3c; font-size: 0.9rem; margin-top: 8px; display: none;"></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="rename-cancel-btn">Annulla</button>
+                    <button class="btn btn-primary" id="rename-save-btn">Salva</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Focus sull'input e seleziona il testo
+        const input = document.getElementById('rename-deck-input');
+        const errorMessage = document.getElementById('rename-error-message');
+        input.focus();
+        input.select();
+
+        // Event listeners
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = document.getElementById('rename-cancel-btn');
+        const saveBtn = document.getElementById('rename-save-btn');
+
+        const closeModal = () => {
+            modal.remove();
+        };
+
+        const showError = (message) => {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            input.focus();
+        };
+
+        const hideError = () => {
+            errorMessage.style.display = 'none';
+        };
+
+        // Nascondi errore quando l'utente modifica l'input
+        input.addEventListener('input', hideError);
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        saveBtn.onclick = async () => {
+            const newName = input.value.trim();
+
+            if (!newName) {
+                showError('Il nome non può essere vuoto');
+                return;
+            }
+
+            if (newName === deckName) {
+                closeModal();
+                return;
+            }
+
+            // Disabilita il pulsante durante il salvataggio
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Salvataggio...';
+
+            const result = await this.controller.renameDeck(deckId, newName);
+
+            if (result.success) {
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Successo', 'Mazzo rinominato con successo', 'success');
+                }
+                closeModal();
+            } else {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Salva';
+
+                if (result.error === 'DUPLICATE_NAME') {
+                    showError('Esiste già un mazzo con questo nome');
+                } else if (result.error === 'DECK_NOT_FOUND') {
+                    showError('Mazzo non trovato');
+                } else {
+                    showError('Errore durante la rinomina');
+                }
+            }
+        };
+
+        // Chiudi con ESC
+        modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'Enter' && e.target === input) {
+                saveBtn.click();
+            }
+        });
+
+        // Chiudi cliccando fuori
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    handleDeleteDeck(deckId, deckName) {
+        // Crea modal di conferma
+        const modal = document.createElement('div');
+        modal.id = 'delete-deck-modal';
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 style="color: #e74c3c;">⚠️ Conferma Eliminazione</h2>
+                <p style="margin: 20px 0; line-height: 1.6;">
+                    Sei sicuro di voler eliminare il mazzo <strong>"${deckName}"</strong>?
+                </p>
+                <p style="margin: 20px 0; padding: 12px; background-color: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; border-radius: 4px; line-height: 1.6;">
+                    <strong>⚠️ Attenzione:</strong> Questa azione è <strong>permanente</strong>. 
+                    Tutte le flashcard contenute in questo mazzo verranno eliminate.
+                </p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="delete-cancel-btn">Annulla</button>
+                    <button class="btn" id="delete-confirm-btn" style="background-color: #e74c3c; color: white;">Elimina</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Event listeners
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = document.getElementById('delete-cancel-btn');
+        const confirmBtn = document.getElementById('delete-confirm-btn');
+
+        const closeModal = () => {
+            modal.remove();
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        confirmBtn.onclick = async () => {
+            // Disabilita il pulsante durante l'eliminazione
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Eliminazione...';
+
+            const result = await this.controller.deleteDeck(deckId);
+
+            if (result.success) {
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Successo', 'Mazzo eliminato', 'success');
+                }
+                closeModal();
+            } else {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Elimina';
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Errore', 'Impossibile eliminare il mazzo', 'error');
+                }
+            }
+        };
+
+        // Chiudi con ESC
+        modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Chiudi cliccando fuori
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
     }
 }

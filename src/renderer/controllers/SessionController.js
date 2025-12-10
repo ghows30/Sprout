@@ -283,6 +283,57 @@ class SessionController {
         }
     }
 
+    async deleteDeck(deckId) {
+        const currentSession = this.model.getCurrentSession();
+        if (!currentSession || !currentSession.decks) return { success: false, error: 'NO_SESSION' };
+
+        const deckIndex = currentSession.decks.findIndex(d => d.id === deckId);
+        if (deckIndex === -1) return { success: false, error: 'DECK_NOT_FOUND' };
+
+        // Rimuovi dalla lista locale
+        const deck = currentSession.decks[deckIndex];
+        currentSession.decks.splice(deckIndex, 1);
+
+        // Salva le modifiche (rimuove il file del mazzo)
+        const result = await this.model.deleteDeck(deck);
+
+        if (result.success) {
+            this.flashcardView.render(currentSession.decks);
+            return { success: true };
+        } else {
+            // Ripristina in caso di errore
+            currentSession.decks.splice(deckIndex, 0, deck);
+            return { success: false, error: result.error };
+        }
+    }
+
+    async renameDeck(deckId, newName) {
+        const currentSession = this.model.getCurrentSession();
+        if (!currentSession || !currentSession.decks) return { success: false, error: 'NO_SESSION' };
+
+        // Check duplicati (case-sensitive)
+        const trimmedName = newName.trim();
+        if (currentSession.decks.some(d => d.id !== deckId && d.name.trim() === trimmedName)) {
+            return { success: false, error: 'DUPLICATE_NAME' };
+        }
+
+        const deck = currentSession.decks.find(d => d.id === deckId);
+        if (!deck) return { success: false, error: 'DECK_NOT_FOUND' };
+
+        const oldName = deck.name;
+
+        // Usa il nuovo metodo del model che gestisce la rinomina della cartella
+        const result = await this.model.renameDeck(oldName, trimmedName);
+
+        if (result.success) {
+            deck.name = trimmedName;
+            this.flashcardView.render(currentSession.decks);
+            return { success: true };
+        } else {
+            return { success: false, error: result.error };
+        }
+    }
+
     async createFlashcard(deckId, question, answer) {
         const currentSession = this.model.getCurrentSession();
         if (!currentSession || !currentSession.decks) return;

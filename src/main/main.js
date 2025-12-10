@@ -498,6 +498,68 @@ app.whenReady().then(() => {
             return { success: false, error: error.message };
         }
     });
+
+    // Delete a deck
+    ipcMain.handle('delete-deck', async (event, { sessionPath, deckName }) => {
+        try {
+            if (!sessionPath || !deckName) {
+                throw new Error('Missing sessionPath or deckName');
+            }
+
+            const safeDeckName = deckName.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+            const deckDir = path.join(sessionPath, 'flashcards', safeDeckName);
+
+            if (!fs.existsSync(deckDir)) {
+                return { success: false, error: 'DECK_NOT_FOUND' };
+            }
+
+            fs.rmSync(deckDir, { recursive: true, force: true });
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting deck:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Rename a deck
+    ipcMain.handle('rename-deck', async (event, { sessionPath, oldName, newName }) => {
+        try {
+            if (!sessionPath || !oldName || !newName) {
+                throw new Error('Missing parameters');
+            }
+
+            const safeOldName = oldName.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+            const safeNewName = newName.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
+
+            const flashcardsDir = path.join(sessionPath, 'flashcards');
+            const oldDir = path.join(flashcardsDir, safeOldName);
+            const newDir = path.join(flashcardsDir, safeNewName);
+
+            if (!fs.existsSync(oldDir)) {
+                return { success: false, error: 'DECK_NOT_FOUND' };
+            }
+
+            if (fs.existsSync(newDir) && oldDir !== newDir) {
+                return { success: false, error: 'DECK_NAME_EXISTS' };
+            }
+
+            fs.renameSync(oldDir, newDir);
+
+            // Update the deck name inside data.json
+            const deckFile = path.join(newDir, 'data.json');
+            if (fs.existsSync(deckFile)) {
+                const data = JSON.parse(fs.readFileSync(deckFile, 'utf8'));
+                data.name = newName;
+                data.lastModified = new Date().toISOString();
+                fs.writeFileSync(deckFile, JSON.stringify(data, null, 2));
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error renaming deck:', error);
+            return { success: false, error: error.message };
+        }
+    });
 });
 
 app.on('window-all-closed', () => {
