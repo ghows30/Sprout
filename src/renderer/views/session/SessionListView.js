@@ -166,6 +166,30 @@ class SessionListView {
         if (!this.sessionsGrid) return;
         this.sessionsGrid.innerHTML = '';
 
+        if (sessions.length === 0) {
+            this.sessionsGrid.innerHTML = `
+                <div class="empty-state-container" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; text-align: center; background-color: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color, #ccc); margin-top: 20px;">
+                    <div class="icon-container" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h2 style="margin-bottom: 10px; color: var(--text-main); font-size: 1.5rem;">Nessuno spazio di studio presente</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 30px; font-size: 1.1rem;">Inizia creando il tuo primo spazio per organizzare i tuoi appunti.</p>
+                    <button id="empty-state-create-session-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 10px; padding: 12px 28px; font-size: 1.1rem;">
+                        <i class="fas fa-plus"></i>
+                        <span>Crea Spazio</span>
+                    </button>
+                </div>
+            `;
+
+            const createBtn = document.getElementById('empty-state-create-session-btn');
+            if (createBtn) {
+                createBtn.addEventListener('click', () => {
+                    this.openModal();
+                });
+            }
+            return;
+        }
+
         sessions.forEach(session => {
             const folder = document.createElement('div');
             folder.className = 'folder-wrapper';
