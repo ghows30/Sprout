@@ -13,11 +13,7 @@ class SettingsModel {
 
             // Timer
             defaultSessionDuration: 25, // minuti (Pomodoro)
-            soundNotifications: true,
-
-            // Dati
-            sessionsPath: '',
-            autoBackup: false
+            soundNotifications: true
         };
 
         this.settings = this.loadSettings();

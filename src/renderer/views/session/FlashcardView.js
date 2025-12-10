@@ -14,8 +14,10 @@ class FlashcardView {
         this.importState = this.getEmptyImportState();
         this.importSource = 'csv';
         this.importSource = 'csv';
+        this.importSource = 'csv';
         this.csvOptions = { delimiter: 'auto', quote: 'auto' };
         this.lastImportedFile = null; // { file, content }
+        this.areModalsBound = false;
     }
 
     getEmptyImportState() {
@@ -248,6 +250,8 @@ class FlashcardView {
     }
 
     bindModalEvents() {
+        if (this.areModalsBound) return;
+
         // Deck Modal Events
         const deckModal = document.getElementById('create-deck-modal');
         const confirmDeckBtn = document.getElementById('confirm-create-deck');
@@ -262,13 +266,23 @@ class FlashcardView {
             el.addEventListener('click', closeDeckModal);
         });
 
-        confirmDeckBtn.addEventListener('click', () => {
+        confirmDeckBtn.onclick = async () => {
             const name = deckInput.value.trim();
             if (name) {
-                this.controller.createDeck(name);
-                closeDeckModal();
+                const result = await this.controller.createDeck(name);
+                if (result && result.success) {
+                    closeDeckModal();
+                } else if (result && result.error === 'DUPLICATE_NAME') {
+                    if (typeof toastManager !== 'undefined') {
+                        toastManager.show('Errore', 'Esiste già un mazzo con questo nome', 'error');
+                    }
+                } else {
+                    if (typeof toastManager !== 'undefined') {
+                        toastManager.show('Errore', 'Impossibile creare il mazzo', 'error');
+                    }
+                }
             }
-        });
+        };
 
         // Card Modal Events
         const cardModal = document.getElementById('create-card-modal');
@@ -287,14 +301,14 @@ class FlashcardView {
             el.addEventListener('click', closeCardModal);
         });
 
-        confirmCardBtn.addEventListener('click', () => {
+        confirmCardBtn.onclick = () => {
             const question = questionInput.value.trim();
             const answer = answerInput.value.trim();
             if (question && answer && this.currentDeckId) {
                 this.controller.createFlashcard(this.currentDeckId, question, answer);
                 closeCardModal();
             }
-        });
+        };
 
         // Import Modal Events
         const importModal = document.getElementById('import-flashcards-modal');
@@ -434,6 +448,8 @@ class FlashcardView {
             filteredDeck.cards = this.studyDeck.cards.filter(c => c.status === 'consolidated');
             this.launchStudyMode(filteredDeck);
         });
+
+        this.areModalsBound = true;
     }
 
     showCreateDeckModal() {

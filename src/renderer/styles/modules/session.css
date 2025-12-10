@@ -1126,3 +1126,21 @@
     box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
     border-color: #2ecc71;
 }
+
+/* Custom Scrollbar for Session Sidebar */
+#session-sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+#session-sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#session-sidebar-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+#session-sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

@@ -25,6 +25,11 @@ class SettingsController {
         if (this.model.saveSettings(update)) {
             // Applica immediatamente alcune impostazioni
             this.applySettingImmediately(key, value);
+
+            // Notifica globale del cambiamento
+            if (typeof eventManager !== 'undefined') {
+                eventManager.notify('SETTINGS_UPDATED', { key, value });
+            }
         }
     }
 

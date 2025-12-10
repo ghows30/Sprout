@@ -119,4 +119,14 @@ class TimerView {
             }
         });
     }
+
+    setDefaultDuration(minutes) {
+        // Aggiorna solo se il timer non è in esecuzione
+        if (this.timerInterval) return;
+
+        this.selectedPresetMinutes = minutes;
+        this.timerSeconds = minutes * 60;
+        this.updateTimerDisplay();
+        this.updatePresetSelection();
+    }
 }

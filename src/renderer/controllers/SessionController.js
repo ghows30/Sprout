@@ -1,6 +1,7 @@
 class SessionController {
     constructor() {
         this.model = new SessionModel();
+        this.settingsModel = new SettingsModel();
         this.listView = new SessionListView(this);
         this.activeView = new ActiveSessionView(this);
         this.timerView = new TimerView();
@@ -17,6 +18,12 @@ class SessionController {
         if (typeof eventManager !== 'undefined') {
             eventManager.subscribe('SESSION_CREATED', () => {
                 this.loadSessions();
+            });
+
+            eventManager.subscribe('SETTINGS_UPDATED', (data) => {
+                if (data.key === 'defaultSessionDuration') {
+                    this.timerView.setDefaultDuration(data.value);
+                }
             });
         }
     }
@@ -146,6 +153,14 @@ class SessionController {
         this.documentView.init();
         this.flashcardView.init();
         this.timerView.init();
+
+        // Ricarica le impostazioni per assicurarsi di avere i dati più recenti
+        this.settingsModel.settings = this.settingsModel.loadSettings();
+        const settings = this.settingsModel.getAllSettings();
+
+        if (settings && settings.defaultSessionDuration) {
+            this.timerView.setDefaultDuration(settings.defaultSessionDuration);
+        }
     }
 
     async saveNote(content, fileName) {
@@ -236,6 +251,12 @@ class SessionController {
             currentSession.decks = [];
         }
 
+        // Check for duplicate name (case-sensitive, exact match only)
+        const trimmedName = name.trim();
+        if (currentSession.decks.some(d => d.name.trim() === trimmedName)) {
+            return { success: false, error: 'DUPLICATE_NAME' };
+        }
+
         const deck = {
             id: Date.now(),
             name: name,
@@ -255,7 +276,7 @@ class SessionController {
             if (!skipRender) {
                 this.flashcardView.render(currentSession.decks);
             }
-            return deck;
+            return { success: true, deck };
         } else {
             console.error('Failed to save deck:', result.error);
             return null;

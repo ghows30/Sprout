@@ -26,60 +26,10 @@ class SettingsView {
                                 <option value="dark">Scuro</option>
                             </select>
                         </div>
-
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="language-select">Lingua</label>
-                                <p class="setting-description">Lingua dell'interfaccia</p>
-                            </div>
-                            <select id="language-select" class="setting-control">
-                                <option value="it">Italiano</option>
-                                <option value="en">English</option>
-                            </select>
-                        </div>
                     </div>
                 </section>
 
-                <!-- Editor -->
-                <section class="settings-section">
-                    <h2><i class="fas fa-edit"></i> Editor</h2>
-                    <div class="settings-group">
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="font-size-input">Dimensione Font</label>
-                                <p class="setting-description">Dimensione del testo nell'editor (px)</p>
-                            </div>
-                            <div class="setting-control-group">
-                                <input type="range" id="font-size-input" min="12" max="24" step="1" class="setting-slider">
-                                <span id="font-size-value" class="setting-value">16px</span>
-                            </div>
-                        </div>
 
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="font-family-select">Font</label>
-                                <p class="setting-description">Famiglia di caratteri per l'editor</p>
-                            </div>
-                            <select id="font-family-select" class="setting-control">
-                                <option value="Inter, system-ui, sans-serif">Inter (Default)</option>
-                                <option value="'Courier New', monospace">Courier New</option>
-                                <option value="Georgia, serif">Georgia</option>
-                                <option value="'Arial', sans-serif">Arial</option>
-                            </select>
-                        </div>
-
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="autosave-input">Intervallo Auto-Save</label>
-                                <p class="setting-description">Salvataggio automatico ogni N secondi</p>
-                            </div>
-                            <div class="setting-control-group">
-                                <input type="range" id="autosave-input" min="10" max="120" step="10" class="setting-slider">
-                                <span id="autosave-value" class="setting-value">30s</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 <!-- Timer -->
                 <section class="settings-section">
@@ -95,44 +45,10 @@ class SettingsView {
                                 <span id="session-duration-value" class="setting-value">25min</span>
                             </div>
                         </div>
-
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="sound-notifications-toggle">Notifiche Sonore</label>
-                                <p class="setting-description">Riproduci un suono al termine del timer</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="sound-notifications-toggle">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
                     </div>
                 </section>
 
-                <!-- Dati -->
-                <section class="settings-section">
-                    <h2><i class="fas fa-database"></i> Dati</h2>
-                    <div class="settings-group">
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label>Percorso Spazi</label>
-                                <p class="setting-description" id="sessions-path-display">Cartella dove vengono salvati gli spazi</p>
-                            </div>
-                            <button id="change-path-btn" class="btn-secondary">Cambia Percorso</button>
-                        </div>
 
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <label for="auto-backup-toggle">Backup Automatico</label>
-                                <p class="setting-description">Crea backup automatici degli spazi</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="auto-backup-toggle">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </section>
 
                 <!-- Informazioni -->
                 <section class="settings-section">
@@ -179,70 +95,30 @@ class SettingsView {
             });
         }
 
-        // Lingua
-        const languageSelect = document.getElementById('language-select');
-        if (languageSelect) {
-            languageSelect.addEventListener('change', (e) => {
-                this.controller.updateSetting('language', e.target.value);
-            });
-        }
 
-        // Font size
-        const fontSizeInput = document.getElementById('font-size-input');
-        const fontSizeValue = document.getElementById('font-size-value');
-        if (fontSizeInput && fontSizeValue) {
-            fontSizeInput.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                fontSizeValue.textContent = `${value}px`;
-                this.controller.updateSetting('editorFontSize', value);
-            });
-        }
 
-        // Font family
-        const fontFamilySelect = document.getElementById('font-family-select');
-        if (fontFamilySelect) {
-            fontFamilySelect.addEventListener('change', (e) => {
-                this.controller.updateSetting('editorFontFamily', e.target.value);
-            });
-        }
 
-        // Auto-save interval
-        const autosaveInput = document.getElementById('autosave-input');
-        const autosaveValue = document.getElementById('autosave-value');
-        if (autosaveInput && autosaveValue) {
-            autosaveInput.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                autosaveValue.textContent = `${value}s`;
-                this.controller.updateSetting('autoSaveInterval', value);
-            });
-        }
 
         // Session duration
         const sessionDurationInput = document.getElementById('session-duration-input');
         const sessionDurationValue = document.getElementById('session-duration-value');
         if (sessionDurationInput && sessionDurationValue) {
+            // Aggiorna il valore visivo durante il trascinamento
             sessionDurationInput.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value);
                 sessionDurationValue.textContent = `${value}min`;
+            });
+
+            // Applica l'impostazione solo al rilascio (conferma)
+            sessionDurationInput.addEventListener('change', (e) => {
+                const value = parseInt(e.target.value);
                 this.controller.updateSetting('defaultSessionDuration', value);
             });
         }
 
-        // Sound notifications
-        const soundToggle = document.getElementById('sound-notifications-toggle');
-        if (soundToggle) {
-            soundToggle.addEventListener('change', (e) => {
-                this.controller.updateSetting('soundNotifications', e.target.checked);
-            });
-        }
 
-        // Auto backup
-        const autoBackupToggle = document.getElementById('auto-backup-toggle');
-        if (autoBackupToggle) {
-            autoBackupToggle.addEventListener('change', (e) => {
-                this.controller.updateSetting('autoBackup', e.target.checked);
-            });
-        }
+
+
 
         // Reset settings
         const resetBtn = document.getElementById('reset-settings-btn');
@@ -251,14 +127,6 @@ class SettingsView {
                 if (confirm('Sei sicuro di voler ripristinare le impostazioni predefinite?')) {
                     this.controller.resetSettings();
                 }
-            });
-        }
-
-        // Change path (placeholder - richiede integrazione con Electron)
-        const changePathBtn = document.getElementById('change-path-btn');
-        if (changePathBtn) {
-            changePathBtn.addEventListener('click', () => {
-                alert('Funzionalità disponibile nella versione desktop completa');
             });
         }
     }
@@ -270,29 +138,9 @@ class SettingsView {
         const themeSelect = document.getElementById('theme-select');
         if (themeSelect) themeSelect.value = settings.theme;
 
-        // Lingua
-        const languageSelect = document.getElementById('language-select');
-        if (languageSelect) languageSelect.value = settings.language;
 
-        // Font size
-        const fontSizeInput = document.getElementById('font-size-input');
-        const fontSizeValue = document.getElementById('font-size-value');
-        if (fontSizeInput && fontSizeValue) {
-            fontSizeInput.value = settings.editorFontSize;
-            fontSizeValue.textContent = `${settings.editorFontSize}px`;
-        }
 
-        // Font family
-        const fontFamilySelect = document.getElementById('font-family-select');
-        if (fontFamilySelect) fontFamilySelect.value = settings.editorFontFamily;
 
-        // Auto-save
-        const autosaveInput = document.getElementById('autosave-input');
-        const autosaveValue = document.getElementById('autosave-value');
-        if (autosaveInput && autosaveValue) {
-            autosaveInput.value = settings.autoSaveInterval;
-            autosaveValue.textContent = `${settings.autoSaveInterval}s`;
-        }
 
         // Session duration
         const sessionDurationInput = document.getElementById('session-duration-input');
@@ -302,18 +150,8 @@ class SettingsView {
             sessionDurationValue.textContent = `${settings.defaultSessionDuration}min`;
         }
 
-        // Sound notifications
-        const soundToggle = document.getElementById('sound-notifications-toggle');
-        if (soundToggle) soundToggle.checked = settings.soundNotifications;
 
-        // Auto backup
-        const autoBackupToggle = document.getElementById('auto-backup-toggle');
-        if (autoBackupToggle) autoBackupToggle.checked = settings.autoBackup;
 
-        // Sessions path
-        const pathDisplay = document.getElementById('sessions-path-display');
-        if (pathDisplay && settings.sessionsPath) {
-            pathDisplay.textContent = settings.sessionsPath;
-        }
+
     }
 }
