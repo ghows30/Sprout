@@ -503,4 +503,14 @@ class SessionController {
         const absolutePath = `file://${currentSession.fullPath}/${file}`;
         this.documentView.openDocument(absolutePath, fileName);
     }
+
+    isTimerRunning() {
+        return this.timerView && this.timerView.isRunning();
+    }
+
+    stopTimer() {
+        if (this.timerView) {
+            this.timerView.resetTimer();
+        }
+    }
 }

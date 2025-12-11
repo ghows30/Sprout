@@ -157,8 +157,12 @@ class ActiveSessionView {
         const backBtn = document.getElementById('back-to-home-btn');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                if (typeof App !== 'undefined' && App.showView) {
-                    App.showView('home');
+                if (this.controller.isTimerRunning()) {
+                    this.showExitConfirmation();
+                } else {
+                    if (typeof App !== 'undefined' && App.showView) {
+                        App.showView('home');
+                    }
                 }
             });
         }
@@ -329,5 +333,44 @@ class ActiveSessionView {
             this.editor.destroy();
             this.editor = null;
         }
+    }
+
+    showExitConfirmation() {
+        const modal = document.createElement('div');
+        modal.id = 'exit-confirm-modal';
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 style="color: #e74c3c;">⚠️ Timer Attivo</h2>
+                <p style="margin: 20px 0; line-height: 1.6;">
+                    La modalità focus è attiva. Se esci ora, il timer verrà <strong>resettato</strong> e perderai i progressi della sessione corrente.
+                </p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="exit-cancel-btn">Rimani</button>
+                    <button class="btn" id="exit-confirm-btn" style="background-color: #e74c3c; color: white;">Esci comunque</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const closeModal = () => modal.remove();
+
+        modal.querySelector('.close-modal').addEventListener('click', closeModal);
+        document.getElementById('exit-cancel-btn').addEventListener('click', closeModal);
+
+        document.getElementById('exit-confirm-btn').addEventListener('click', () => {
+            this.controller.stopTimer();
+            closeModal();
+            if (typeof App !== 'undefined' && App.showView) {
+                App.showView('home');
+            }
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
     }
 }

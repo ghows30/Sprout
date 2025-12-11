@@ -28,6 +28,7 @@ class TimerView {
         if (this.timerResetBtn) this.timerResetBtn.addEventListener('click', () => this.resetTimer());
 
         if (this.timerIconBtn) this.timerIconBtn.addEventListener('click', () => this.openModal());
+        if (this.timerCountdown) this.timerCountdown.addEventListener('click', () => this.openModal());
         if (this.closeTimerModalBtn) this.closeTimerModalBtn.addEventListener('click', () => this.closeModal());
 
         this.presetButtons.forEach(btn => {
@@ -50,8 +51,31 @@ class TimerView {
         if (this.timerCountdown) this.timerCountdown.textContent = timeString;
     }
 
+    enterFocusMode() {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        }
+    }
+
+    exitFocusMode() {
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(err => {
+                console.error(`Error attempting to exit full-screen mode: ${err.message} (${err.name})`);
+            });
+        }
+    }
+
+    isRunning() {
+        return !!this.timerInterval;
+    }
+
     startTimer() {
         if (this.timerInterval) return;
+
+        // Enter focus mode
+        this.enterFocusMode();
 
         if (this.timerIconBtn) this.timerIconBtn.style.display = 'none';
         if (this.timerCountdown) this.timerCountdown.style.display = 'block';
@@ -65,7 +89,12 @@ class TimerView {
                 this.updateTimerDisplay();
             } else {
                 this.pauseTimer();
-                alert('Timer completato!');
+                // Play sound or notification here if needed
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Timer Completato', 'La tua sessione di focus è terminata!', 'success');
+                } else {
+                    alert('Timer completato!');
+                }
             }
         }, 1000);
     }
@@ -74,13 +103,16 @@ class TimerView {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
+
+            // Exit focus mode when paused
+            this.exitFocusMode();
         }
         this.timerStartBtn.style.display = 'flex';
         this.timerPauseBtn.style.display = 'none';
     }
 
     resetTimer() {
-        this.pauseTimer();
+        this.pauseTimer(); // This handles exitFocusMode too
         this.timerSeconds = this.selectedPresetMinutes * 60;
         this.updateTimerDisplay();
 
