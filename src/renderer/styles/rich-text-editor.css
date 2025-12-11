@@ -415,3 +415,75 @@
         font-size: 14px;
     }
 }
+
+/* Quill Editor Specific Styles for Sticky Toolbar */
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.ql-toolbar {
+    flex: 0 0 auto;
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color) !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    z-index: 10;
+}
+
+.ql-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: none !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1rem !important;
+}
+
+.ql-editor {
+    flex: 1;
+    overflow-y: auto;
+    height: 100%;
+    padding: 20px !important;
+    color: var(--text-main);
+}
+
+/* Scrollbar for Quill */
+.ql-editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ql-editor::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ql-editor::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.ql-editor::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Quill Toolbar Icons */
+.ql-snow .ql-stroke {
+    stroke: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-fill {
+    fill: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-picker {
+    color: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-picker-options {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
