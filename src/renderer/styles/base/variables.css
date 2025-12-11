@@ -30,6 +30,9 @@
     --bg-main: #e5e3dc;
     --text-secondary: #9ead85;
     --border-color: #d0cec7;
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffffff;
+    --bg-hover: rgba(57, 86, 72, 0.1);
 }
 
 /* Dark Theme */
@@ -54,4 +57,7 @@
     --bg-main: #1a1a1a;
     --text-secondary: #9ead85;
     --border-color: #3d3d3d;
+    --bg-primary: #2d2d2d;
+    --bg-secondary: #2d2d2d;
+    --bg-hover: rgba(255, 255, 255, 0.1);
 }

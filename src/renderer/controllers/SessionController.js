@@ -6,7 +6,7 @@ class SessionController {
         this.activeView = new ActiveSessionView(this);
         this.timerView = new TimerView();
         this.flashcardView = new FlashcardView(this);
-        this.documentView = new DocumentView();
+        // DocumentView initialized in initActiveSessionViews
 
         this.init();
     }
@@ -143,7 +143,23 @@ class SessionController {
 
     initActiveSessionViews() {
         this.activeView.init();
+
+        // Initialize DocumentView with callback to save tabs
+        this.documentView = new DocumentView((tabsState) => {
+            const currentSession = this.model.getCurrentSession();
+            if (currentSession) {
+                currentSession.tabsState = tabsState;
+                this.model.saveSessionData(currentSession);
+            }
+        });
         this.documentView.init();
+
+        // Restore tabs if they exist in the session
+        const currentSession = this.model.getCurrentSession();
+        if (currentSession && currentSession.tabsState) {
+            this.documentView.restoreTabs(currentSession.tabsState);
+        }
+
         this.flashcardView.init();
         this.timerView.init();
 

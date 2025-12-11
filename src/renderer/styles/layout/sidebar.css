@@ -7,9 +7,10 @@
     flex-direction: column;
     padding: 20px;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-    transition: width 0.1s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     flex-shrink: 0;
+    overflow-x: hidden;
 }
 
 .sidebar.collapsed {

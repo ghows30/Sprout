@@ -47,15 +47,19 @@ class ActiveSessionView {
                         <div class="split-resizer" id="split-resizer"></div>
 
                         <div class="document-viewer" id="document-viewer" style="display: none;">
-                            <div class="viewer-content" id="viewer-content">
-                                <div class="viewer-header">
-                                    <span id="viewer-filename">Nessun documento aperto</span>
-                                    <button id="close-viewer-btn" class="btn-icon">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                            <div class="document-tabs-container">
+                                <div class="document-tabs-list" id="document-tabs-list">
+                                    <!-- Tabs will be injected here -->
                                 </div>
-                                <iframe id="document-iframe" style="display: none;"></iframe>
-                                <img id="document-image" style="display: none;" />
+                                <button id="close-all-tabs-btn" class="btn-icon close-all-tabs" title="Chiudi tutto">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="viewer-content-container" id="viewer-content-container">
+                                <div class="viewer-placeholder" id="viewer-placeholder">
+                                    <i class="fas fa-file-alt"></i>
+                                    <p>Seleziona un documento per visualizzarlo</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -109,14 +113,14 @@ class ActiveSessionView {
         this.sessionSidebarContent.innerHTML = `
             <div class="sidebar-back-btn-container">
                 <button id="back-to-home-btn" class="btn btn-secondary sidebar-back-btn">
-                    <i class="fas fa-arrow-left"></i> Torna alla Home
+                    <i class="fas fa-arrow-left"></i> <span>Torna alla Home</span>
                 </button>
             </div>
 
             <div class="sidebar-section">
                 <div class="section-title-row">
                     <h3 class="section-title">
-                        <i class="fas fa-folder-open"></i> Documenti
+                        <i class="fas fa-folder-open"></i> <span>Documenti</span>
                     </h3>
                     <button class="add-document-btn" id="add-document-btn" title="Aggiungi documenti">
                         <i class="fas fa-plus"></i>
@@ -129,14 +133,14 @@ class ActiveSessionView {
             <!-- Flashcards Section -->
             <div class="sidebar-section">
                 <h3 class="section-title">
-                    <i class="fas fa-layer-group"></i> Flashcard
+                    <i class="fas fa-layer-group"></i> <span>Flashcard</span>
                 </h3>
                 <div class="flashcard-actions">
                     <button class="btn btn-primary btn-sm create-flashcard-btn" id="create-flashcard-btn">
-                        <i class="fas fa-plus"></i> Crea
+                        <i class="fas fa-plus"></i> <span>Crea</span>
                     </button>
                     <button class="btn btn-secondary btn-sm import-flashcard-btn" id="import-flashcard-btn">
-                        <i class="fas fa-file-import"></i> Importa
+                        <i class="fas fa-file-import"></i> <span>Importa</span>
                     </button>
                 </div>
                 <ul id="flashcard-list" class="flashcard-list">
@@ -163,6 +167,19 @@ class ActiveSessionView {
         if (this.addDocumentBtn) {
             this.addDocumentBtn.addEventListener('click', () => this.controller.addDocuments());
         }
+
+        // Add click-to-expand logic for section titles
+        const sectionTitles = this.sessionSidebarContent.querySelectorAll('.section-title');
+        sectionTitles.forEach(title => {
+            title.addEventListener('click', () => {
+                const sidebar = document.getElementById('main-sidebar');
+                if (sidebar && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    // Trigger resize event to update layout if needed
+                    window.dispatchEvent(new Event('resize'));
+                }
+            });
+        });
 
         // Re-render lists if data is available
         const currentSession = this.controller.model.getCurrentSession();
@@ -199,6 +216,11 @@ class ActiveSessionView {
         this.sessionTitle.textContent = session.name;
 
         this.initEditor();
+
+        // Re-initialize document view to bind events to new DOM
+        if (this.controller.documentView) {
+            this.controller.documentView.init();
+        }
 
         const notesResult = await this.controller.loadNotes();
         if (notesResult.success && this.editor) {
