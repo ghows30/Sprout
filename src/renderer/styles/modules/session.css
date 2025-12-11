@@ -148,7 +148,7 @@
 .category-chevron {
     transition: transform 0.2s;
     font-size: 0.8rem !important;
-    color: var(--text-muted) !important;
+    color: var(--sidebar-text-muted) !important;
 }
 
 .category-chevron.collapsed {
@@ -158,7 +158,7 @@
 .file-count {
     margin-left: auto;
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--sidebar-text-muted);
     font-weight: normal;
 }
 
@@ -1462,6 +1462,15 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* Fix for flashcard button visibility */
+.create-flashcard-btn {
+    color: white !important;
+}
+
+[data-theme="dark"] .create-flashcard-btn {
+    color: #2d2d2d !important;
+}
+
 /* Sidebar Text Handling for Animation */
 .sidebar-back-btn span,
 .section-title span,
@@ -1542,7 +1551,7 @@
 .sidebar.collapsed .section-title i {
     margin: 0;
     font-size: 1.1rem;
-    color: var(--text-muted);
+    color: var(--sidebar-text-muted);
 }
 
 /* Hide everything else when collapsed */

@@ -19,11 +19,11 @@
 
 .btn-primary {
     background-color: var(--primary-dark);
-    color: white;
+    color: var(--btn-text-color);
 }
 
 .btn-primary:hover {
-    background-color: #143620;
+    background-color: var(--primary-hover);
 }
 
 .btn-icon {

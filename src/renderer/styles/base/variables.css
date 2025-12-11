@@ -17,8 +17,10 @@
     /* Very Dark Green for text */
     --text-light: #e5e3dc;
     /* Light Beige for light text */
-    --text-muted: #9ead85;
-    /* Light Sage for muted text */
+    --text-muted: #4a6b50;
+    /* Darker Sage for better contrast on light bg */
+    --sidebar-text-muted: #9ead85;
+    /* Light Sage for sidebar text */
 
     --card-bg: #ffffff;
 
@@ -28,11 +30,13 @@
     /* Additional variables for settings */
     --primary-color: #588157;
     --bg-main: #e5e3dc;
-    --text-secondary: #9ead85;
+    --text-secondary: #4a6b50;
     --border-color: #d0cec7;
     --bg-primary: #ffffff;
     --bg-secondary: #ffffff;
     --bg-hover: rgba(57, 86, 72, 0.1);
+    --btn-text-color: #ffffff;
+    --primary-hover: #143620;
 }
 
 /* Dark Theme */
@@ -47,6 +51,7 @@
     --text-main: #e5e3dc;
     --text-light: #e5e3dc;
     --text-muted: #9ead85;
+    --sidebar-text-muted: #9ead85;
 
     --card-bg: #2d2d2d;
 
@@ -60,4 +65,6 @@
     --bg-primary: #2d2d2d;
     --bg-secondary: #2d2d2d;
     --bg-hover: rgba(255, 255, 255, 0.1);
+    --btn-text-color: #2d2d2d;
+    --primary-hover: #8b9c75;
 }
