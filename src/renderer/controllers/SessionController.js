@@ -493,4 +493,31 @@ class SessionController {
             this.timerView.resetTimer();
         }
     }
+    async deleteFile(fileName) {
+        const currentSession = this.model.getCurrentSession();
+        if (!currentSession) return;
+
+        const result = await this.model.deleteFile(fileName);
+
+        if (result.success) {
+            // Rimuovi il file dalla sessione locale
+            currentSession.files = currentSession.files.filter(f => f !== fileName);
+
+            // Aggiorna la vista
+            this.activeView.renderFileList(currentSession.files);
+
+            // Se il file eliminato era aperto, chiudi il visualizzatore
+            if (this.documentView && this.documentView.viewerFilename.textContent === fileName.split('/').pop().split('\\').pop()) {
+                this.documentView.closeDocument();
+            }
+
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Successo', 'File eliminato correttamente', 'success');
+            }
+        } else {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Errore', 'Impossibile eliminare il file', 'error');
+            }
+        }
+    }
 }

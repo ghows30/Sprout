@@ -518,6 +518,52 @@ app.whenReady().then(() => {
             return { success: false, error: error.message };
         }
     });
+    ipcMain.handle('delete-file', async (event, { sessionPath, fileName }) => {
+        try {
+            if (!sessionPath || !fileName) {
+                throw new Error('Missing sessionPath or fileName');
+            }
+
+            const sessionFile = path.join(sessionPath, 'session.json');
+            if (!fs.existsSync(sessionFile)) {
+                return { success: false, error: 'SESSION_NOT_FOUND' };
+            }
+
+            const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
+
+            // Trova il file nell'array files
+            // fileName qui è il path relativo (es. "documents/file.pdf")
+            const fileIndex = session.files.indexOf(fileName);
+
+            if (fileIndex === -1) {
+                // Prova a cercare solo per nome file se il path relativo non corrisponde
+                const nameOnlyIndex = session.files.findIndex(f => path.basename(f) === path.basename(fileName));
+                if (nameOnlyIndex === -1) {
+                    return { success: false, error: 'FILE_NOT_FOUND_IN_SESSION' };
+                }
+                // Aggiorna fileName con quello trovato nella sessione per sicurezza
+                fileName = session.files[nameOnlyIndex];
+            }
+
+            // Costruisci il path assoluto per l'eliminazione
+            const absoluteFilePath = path.join(sessionPath, fileName);
+
+            if (fs.existsSync(absoluteFilePath)) {
+                fs.unlinkSync(absoluteFilePath);
+            }
+
+            // Rimuovi dal file session.json
+            session.files = session.files.filter(f => f !== fileName);
+            session.lastModified = new Date().toISOString();
+
+            fs.writeFileSync(sessionFile, JSON.stringify(session, null, 2));
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            return { success: false, error: error.message };
+        }
+    });
 });
 
 app.on('window-all-closed', () => {

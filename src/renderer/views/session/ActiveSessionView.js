@@ -280,6 +280,14 @@ class ActiveSessionView {
                 <span>${fileName}</span>
             `;
             li.addEventListener('click', () => this.controller.openDocument(file, fileName));
+
+            // Context Menu per eliminazione
+            li.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.showFileContextMenu(e.clientX, e.clientY, file, fileName);
+            });
+
             categoryContainer.appendChild(li);
         });
 
@@ -290,6 +298,78 @@ class ActiveSessionView {
 
         this.sessionFileList.appendChild(categoryHeader);
         this.sessionFileList.appendChild(categoryContainer);
+    }
+
+    showFileContextMenu(x, y, file, fileName) {
+        this.hideFileContextMenu();
+
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.id = 'file-context-menu';
+        menu.innerHTML = `
+            <div class="context-menu-item danger" data-action="delete">
+                <i class="fas fa-trash"></i>
+                <span>Elimina</span>
+            </div>
+        `;
+
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
+
+        document.body.appendChild(menu);
+
+        menu.querySelector('.context-menu-item').addEventListener('click', () => {
+            this.handleDeleteFile(file, fileName);
+            this.hideFileContextMenu();
+        });
+
+        setTimeout(() => {
+            document.addEventListener('click', this.hideFileContextMenu.bind(this), { once: true });
+        }, 0);
+    }
+
+    hideFileContextMenu() {
+        const menu = document.getElementById('file-context-menu');
+        if (menu) menu.remove();
+    }
+
+    handleDeleteFile(file, fileName) {
+        const modal = document.createElement('div');
+        modal.id = 'delete-file-confirm-modal';
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 style="color: #e74c3c;">⚠️ Conferma Eliminazione</h2>
+                <p style="margin: 20px 0; line-height: 1.6;">
+                    Sei sicuro di voler eliminare il file <strong>"${fileName}"</strong>?
+                </p>
+                <p style="margin: 20px 0; padding: 12px; background-color: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; border-radius: 4px; line-height: 1.6;">
+                    <strong>⚠️ Attenzione:</strong> Questa azione è <strong>permanente</strong>.
+                </p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="delete-file-cancel-btn">Annulla</button>
+                    <button class="btn" id="delete-file-confirm-btn" style="background-color: #e74c3c; color: white;">Elimina</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const closeModal = () => modal.remove();
+
+        modal.querySelector('.close-modal').addEventListener('click', closeModal);
+        document.getElementById('delete-file-cancel-btn').addEventListener('click', closeModal);
+
+        document.getElementById('delete-file-confirm-btn').addEventListener('click', async () => {
+            await this.controller.deleteFile(file);
+            closeModal();
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
     }
 
     /**

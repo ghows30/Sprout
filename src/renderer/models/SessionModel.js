@@ -130,4 +130,12 @@ class SessionModel {
             newName: newName
         });
     }
+    async deleteFile(fileName) {
+        if (!this.currentSession) throw new Error('No active session');
+
+        return await this.ipcRenderer.invoke('delete-file', {
+            sessionPath: this.currentSession.fullPath,
+            fileName: fileName
+        });
+    }
 }
