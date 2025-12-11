@@ -20,7 +20,11 @@ class ActiveSessionView {
                             <span id="auto-save-text">Salvato</span>
                         </div>
 
-                        <!-- Timer Icon/Display -->
+                        <div class="auto-save-status" id="auto-save-status" style="display: none;">
+                            <i class="fas fa-check-circle" style="color: var(--success); margin-right: 5px;"></i>
+                            <span id="auto-save-text">Salvato</span>
+                        </div>
+
                         <div class="header-timer-widget" id="timer-widget">
                             <button class="timer-icon-btn" id="timer-icon-btn">
                                 <i class="fas fa-clock"></i>
@@ -29,24 +33,19 @@ class ActiveSessionView {
                         </div>
                     </header>
 
-                    <!-- Split View Container -->
                     <div class="split-view-container">
-                        <!-- Notes Editor (Left) -->
                         <div class="notes-editor">
                             <div class="notes-header">
                                 <i class="fas fa-pen-fancy" style="margin-right: 10px; color: var(--primary-light);"></i>
                                 Appunti
                             </div>
                             <div class="editor-container">
-                                <!-- Quill Editor (con toolbar integrata) -->
                                 <div id="rich-text-editor"></div>
                             </div>
                         </div>
 
-                        <!-- Resizer -->
                         <div class="split-resizer" id="split-resizer"></div>
 
-                        <!-- Document Viewer (Right) -->
                         <div class="document-viewer" id="document-viewer" style="display: none;">
                             <div class="viewer-content" id="viewer-content">
                                 <div class="viewer-header">
@@ -79,7 +78,6 @@ class ActiveSessionView {
         this.autoSaveStatus = document.getElementById('auto-save-status');
         this.autoSaveText = document.getElementById('auto-save-text');
 
-        // Main Sidebar Elements
         this.mainNavLinks = document.getElementById('main-nav-links');
         this.sessionSidebarContent = document.getElementById('session-sidebar-content');
     }
@@ -101,7 +99,7 @@ class ActiveSessionView {
         if (this.mainNavLinks && this.sessionSidebarContent) {
             this.sessionSidebarContent.style.display = 'none';
             this.mainNavLinks.style.display = 'block';
-            this.sessionSidebarContent.innerHTML = ''; // Clean up
+            this.sessionSidebarContent.innerHTML = '';
         }
     }
 
@@ -115,7 +113,6 @@ class ActiveSessionView {
                 </button>
             </div>
 
-            <!-- Documents Section -->
             <div class="sidebar-section">
                 <div class="section-title-row">
                     <h3 class="section-title">
@@ -126,7 +123,6 @@ class ActiveSessionView {
                     </button>
                 </div>
                 <ul id="session-file-list" class="session-file-list">
-                    <!-- Files will be injected here -->
                 </ul>
             </div>
 
@@ -144,16 +140,13 @@ class ActiveSessionView {
                     </button>
                 </div>
                 <ul id="flashcard-list" class="flashcard-list">
-                    <!-- Flashcards will be injected here -->
                 </ul>
             </div>
         `;
 
-        // Cache new elements
         this.sessionFileList = document.getElementById('session-file-list');
         this.addDocumentBtn = document.getElementById('add-document-btn');
 
-        // Bind events for new elements
         const backBtn = document.getElementById('back-to-home-btn');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
@@ -175,7 +168,6 @@ class ActiveSessionView {
         const currentSession = this.controller.model.getCurrentSession();
         if (currentSession) {
             this.renderFileList(currentSession.files);
-            // Flashcards are rendered by FlashcardView, but we need to make sure the container exists
         }
     }
 
@@ -200,22 +192,18 @@ class ActiveSessionView {
     }
 
     async render(session) {
-        // Assicurati che il DOM sia caricato
         if (!this.sessionTitle) this.cacheDOM();
 
         if (!this.sessionTitle) return;
 
         this.sessionTitle.textContent = session.name;
 
-        // Inizializza l'editor
         this.initEditor();
 
-        // Carica gli appunti esistenti
         const notesResult = await this.controller.loadNotes();
         if (notesResult.success && this.editor) {
             this.editor.setContent(notesResult.content);
 
-            // Mostra un toast se è stata effettuata una migrazione
             if (notesResult.migrated && typeof toastManager !== 'undefined') {
                 toastManager.show('Migrazione completata', 'I tuoi appunti sono stati convertiti al nuovo formato!', 'success');
             }
@@ -223,7 +211,6 @@ class ActiveSessionView {
 
         this.renderFileList(session.files);
 
-        // Renderizza i mazzi se presenti
         if (this.controller.flashcardView) {
             this.controller.flashcardView.render(session.decks);
         }
@@ -311,12 +298,10 @@ class ActiveSessionView {
     initEditor() {
         if (!this.editorElement) return;
 
-        // Distruggi l'editor esistente se presente
         if (this.editor) {
             this.editor.destroy();
         }
 
-        // Crea una nuova istanza dell'editor
         this.editor = new RichTextEditor();
         this.editor.init(
             this.editorElement,
@@ -325,9 +310,6 @@ class ActiveSessionView {
         );
     }
 
-    /**
-     * Distrugge l'editor quando si esce dalla sessione
-     */
     destroyEditor() {
         if (this.editor) {
             this.editor.destroy();

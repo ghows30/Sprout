@@ -18,7 +18,8 @@ function createWindow() {
         height: 800,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false // Needed for nodeIntegration: true to work easily
+            nodeIntegration: true,
+            contextIsolation: false
         }
     });
 
@@ -29,7 +30,6 @@ app.whenReady().then(() => {
     ensureDirectoryExists();
     createWindow();
 
-    // IPC Handlers
     ipcMain.handle('get-sessions', async () => {
         try {
             if (!fs.existsSync(sproutPath)) return [];
@@ -45,9 +45,8 @@ app.whenReady().then(() => {
                         try {
                             const data = fs.readFileSync(sessionFile, 'utf8');
                             const session = JSON.parse(data);
-                            session.fullPath = sessionDir; // Add absolute path
+                            session.fullPath = sessionDir;
 
-                            // Add lastModified from file stats
                             const stats = fs.statSync(sessionFile);
                             session.lastModified = stats.mtime.toISOString();
 
@@ -73,7 +72,7 @@ app.whenReady().then(() => {
             if (!fs.existsSync(sessionDir)) {
                 fs.mkdirSync(sessionDir, { recursive: true });
             }
-            // Copy files
+
             const processedFiles = [];
             if (session.files && Array.isArray(session.files)) {
                 for (const file of session.files) {
@@ -96,7 +95,6 @@ app.whenReady().then(() => {
                             const destPath = path.join(categoryDir, file.name);
                             fs.copyFileSync(file.path, destPath);
 
-                            // Store relative path
                             processedFiles.push(path.join(subfolder, file.name));
                         } catch (err) {
                             console.error(`Failed to copy file ${file.name}:`, err);
@@ -123,7 +121,6 @@ app.whenReady().then(() => {
                 throw new Error('Missing sessionPath or fileName');
             }
 
-            // Aggiungi .txt se il file non ha estensione
             if (!path.extname(fileName)) {
                 fileName += '.txt';
             }
@@ -137,7 +134,6 @@ app.whenReady().then(() => {
         }
     });
 
-    // Salva automaticamente in 'appunti.json' (formato TipTap)
     ipcMain.handle('auto-save-notes', async (event, { sessionPath, content }) => {
         try {
             if (!sessionPath) {
@@ -146,11 +142,9 @@ app.whenReady().then(() => {
 
             const filePath = path.join(sessionPath, 'appunti.json');
 
-            // Salva il contenuto JSON di TipTap
             const jsonContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
             fs.writeFileSync(filePath, jsonContent, 'utf8');
 
-            // Update lastModified in session.json
             const sessionFile = path.join(sessionPath, 'session.json');
             if (fs.existsSync(sessionFile)) {
                 const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
@@ -166,7 +160,6 @@ app.whenReady().then(() => {
     });
 
 
-    // Carica gli appunti da 'appunti.json' se esiste, altrimenti migra da 'appunti.txt'
     ipcMain.handle('load-notes', async (event, { sessionPath }) => {
         try {
             if (!sessionPath) {
@@ -176,12 +169,10 @@ app.whenReady().then(() => {
             const jsonFilePath = path.join(sessionPath, 'appunti.json');
             const txtFilePath = path.join(sessionPath, 'appunti.txt');
 
-            // Prova a caricare il file JSON
             if (fs.existsSync(jsonFilePath)) {
                 const content = fs.readFileSync(jsonFilePath, 'utf8');
                 return { success: true, content: JSON.parse(content) };
             }
-            // Se non esiste JSON ma esiste TXT, migra automaticamente
             else if (fs.existsSync(txtFilePath)) {
                 const txtContent = fs.readFileSync(txtFilePath, 'utf8');
 
@@ -194,16 +185,13 @@ app.whenReady().then(() => {
                     }))
                 };
 
-                // Salva il contenuto migrato in formato JSON
                 fs.writeFileSync(jsonFilePath, JSON.stringify(tiptapContent, null, 2), 'utf8');
 
-                // Opzionalmente, rinomina il file .txt come backup
                 const backupPath = path.join(sessionPath, 'appunti.txt.backup');
                 fs.renameSync(txtFilePath, backupPath);
 
                 return { success: true, content: tiptapContent, migrated: true };
             }
-            // Nessun file esistente, restituisci contenuto vuoto
             else {
                 return {
                     success: true,
@@ -226,17 +214,15 @@ app.whenReady().then(() => {
             const sessionDir = path.join(sproutPath, safeName);
             const filePath = path.join(sessionDir, 'session.json');
 
-            // Read existing session to preserve file paths
             let existingSession = {};
             if (fs.existsSync(filePath)) {
                 existingSession = JSON.parse(fs.readFileSync(filePath, 'utf8'));
             }
 
-            // Merge with new data (preserve files array, update flashcards)
             const updatedSession = {
                 ...existingSession,
                 ...sessionData,
-                files: existingSession.files || sessionData.files, // Keep existing files
+                files: existingSession.files || sessionData.files,
                 lastModified: new Date().toISOString()
             };
 
@@ -250,7 +236,6 @@ app.whenReady().then(() => {
         try {
             const { dialog } = require('electron');
 
-            // Open file dialog
             const result = await dialog.showOpenDialog({
                 properties: ['openFile', 'multiSelections'],
                 filters: [
@@ -266,14 +251,12 @@ app.whenReady().then(() => {
                 return { success: false, canceled: true };
             }
 
-            // Read existing session
             const sessionJsonPath = path.join(sessionPath, 'session.json');
             let session = {};
             if (fs.existsSync(sessionJsonPath)) {
                 session = JSON.parse(fs.readFileSync(sessionJsonPath, 'utf8'));
             }
 
-            // Copy files to appropriate subfolders and update session
             const existingFiles = session.files || [];
             const newFiles = [];
             const duplicates = [];
@@ -282,7 +265,6 @@ app.whenReady().then(() => {
                 const fileName = path.basename(filePath);
                 const ext = path.extname(fileName).toLowerCase();
 
-                // Determine subfolder based on file type
                 let subfolder = 'others';
                 if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext)) {
                     subfolder = 'images';
@@ -290,24 +272,20 @@ app.whenReady().then(() => {
                     subfolder = 'documents';
                 }
 
-                // Create subfolder if it doesn't exist
                 const categoryDir = path.join(sessionPath, subfolder);
                 if (!fs.existsSync(categoryDir)) {
                     fs.mkdirSync(categoryDir, { recursive: true });
                 }
 
-                // Copy file
                 const destPath = path.join(categoryDir, fileName);
                 const relativePath = path.join(subfolder, fileName);
 
-                // Check if file already exists in session
                 if (existingFiles.includes(relativePath)) {
                     duplicates.push(fileName);
                     continue;
                 }
 
                 try {
-                    // Copy file
                     fs.copyFileSync(filePath, destPath);
                     newFiles.push(relativePath);
                 } catch (err) {
@@ -315,10 +293,8 @@ app.whenReady().then(() => {
                 }
             }
 
-            // Update session files
             session.files = [...existingFiles, ...newFiles];
 
-            // Save updated session
             fs.writeFileSync(sessionJsonPath, JSON.stringify(session, null, 2));
 
             return {
@@ -333,13 +309,11 @@ app.whenReady().then(() => {
         }
     });
 
-    // Check if a session name already exists
     ipcMain.handle('check-session-name-exists', async (event, { name, excludePath }) => {
         try {
             const safeName = name.replace(/[^a-z0-9àèéìòùç\s-_]/gi, '').trim();
             const sessionDir = path.join(sproutPath, safeName);
 
-            // If excludePath is provided, ignore that specific path (for rename validation)
             if (excludePath) {
                 const excludeSafeName = path.basename(excludePath);
                 if (safeName.toLowerCase() === excludeSafeName.toLowerCase()) {
@@ -354,7 +328,6 @@ app.whenReady().then(() => {
         }
     });
 
-    // Rename a session
     ipcMain.handle('rename-session', async (event, { sessionPath, newName }) => {
         try {
             if (!sessionPath || !newName) {
@@ -368,12 +341,10 @@ app.whenReady().then(() => {
 
             const newSessionDir = path.join(sproutPath, safeName);
 
-            // Check if new name already exists (and it's not the same folder)
             if (fs.existsSync(newSessionDir) && sessionPath !== newSessionDir) {
                 return { success: false, error: 'SESSION_NAME_EXISTS' };
             }
 
-            // Read current session data
             const sessionFile = path.join(sessionPath, 'session.json');
             if (!fs.existsSync(sessionFile)) {
                 throw new Error('Session file not found');
@@ -381,20 +352,15 @@ app.whenReady().then(() => {
 
             const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
 
-            // Update session name
             session.name = newName;
             session.lastModified = new Date().toISOString();
 
-            // If the folder name needs to change
             if (sessionPath !== newSessionDir) {
-                // Rename the folder
                 fs.renameSync(sessionPath, newSessionDir);
 
-                // Write updated session file to new location
                 const newSessionFile = path.join(newSessionDir, 'session.json');
                 fs.writeFileSync(newSessionFile, JSON.stringify(session, null, 2));
             } else {
-                // Just update the session file
                 fs.writeFileSync(sessionFile, JSON.stringify(session, null, 2));
             }
 
@@ -409,19 +375,16 @@ app.whenReady().then(() => {
         }
     });
 
-    // Delete a session
     ipcMain.handle('delete-session', async (event, { sessionPath }) => {
         try {
             if (!sessionPath) {
                 throw new Error('Missing sessionPath');
             }
 
-            // Verifica che la cartella esista
             if (!fs.existsSync(sessionPath)) {
                 return { success: false, error: 'SESSION_NOT_FOUND' };
             }
 
-            // Elimina ricorsivamente la cartella
             fs.rmSync(sessionPath, { recursive: true, force: true });
 
             return { success: true };
@@ -430,7 +393,7 @@ app.whenReady().then(() => {
             return { success: false, error: error.message };
         }
     });
-    // Save a deck
+
     ipcMain.handle('save-deck', async (event, { sessionPath, deck }) => {
         try {
             if (!sessionPath || !deck) {
@@ -451,7 +414,6 @@ app.whenReady().then(() => {
 
             const deckFile = path.join(deckDir, 'data.json');
 
-            // Update lastModified
             deck.lastModified = new Date().toISOString();
 
             fs.writeFileSync(deckFile, JSON.stringify(deck, null, 2));
@@ -462,7 +424,6 @@ app.whenReady().then(() => {
         }
     });
 
-    // Load decks
     ipcMain.handle('load-decks', async (event, { sessionPath }) => {
         try {
             if (!sessionPath) {
@@ -499,7 +460,6 @@ app.whenReady().then(() => {
         }
     });
 
-    // Delete a deck
     ipcMain.handle('delete-deck', async (event, { sessionPath, deckName }) => {
         try {
             if (!sessionPath || !deckName) {
@@ -521,7 +481,6 @@ app.whenReady().then(() => {
         }
     });
 
-    // Rename a deck
     ipcMain.handle('rename-deck', async (event, { sessionPath, oldName, newName }) => {
         try {
             if (!sessionPath || !oldName || !newName) {
@@ -545,7 +504,6 @@ app.whenReady().then(() => {
 
             fs.renameSync(oldDir, newDir);
 
-            // Update the deck name inside data.json
             const deckFile = path.join(newDir, 'data.json');
             if (fs.existsSync(deckFile)) {
                 const data = JSON.parse(fs.readFileSync(deckFile, 'utf8'));

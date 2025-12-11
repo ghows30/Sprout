@@ -87,26 +87,60 @@
         <!-- Timer Modal -->
         <div id="timer-modal" class="modal">
             <div class="modal-content timer-modal-content">
-                <span class="close-modal" id="close-timer-modal">&times;</span>
-                <h2>Timer Pomodoro</h2>
+                <div class="modal-header">
+                    <h2>Timer Pomodoro</h2>
+                    <span class="close-modal" id="close-timer-modal">&times;</span>
+                </div>
+
                 <div class="timer-modal-body">
-                    <div class="timer-display-large" id="timer-display">25:00</div>
+                    <!-- Timer Display -->
+                    <div class="timer-display-container">
+                        <div class="timer-display-large" id="timer-display">25:00</div>
+                    </div>
+
+                    <!-- Main Controls -->
                     <div class="timer-controls-large">
-                        <button id="timer-start" class="timer-btn-large">
+                        <button id="timer-start" class="timer-btn-large" title="Avvia">
                             <i class="fas fa-play"></i>
                         </button>
-                        <button id="timer-pause" class="timer-btn-large" style="display: none;">
+                        <button id="timer-pause" class="timer-btn-large" style="display: none;" title="Pausa">
                             <i class="fas fa-pause"></i>
                         </button>
-                        <button id="timer-reset" class="timer-btn-large">
+                        <button id="timer-reset" class="timer-btn-large secondary" title="Reset">
                             <i class="fas fa-redo"></i>
                         </button>
                     </div>
+
+                    <div class="timer-divider"></div>
+
+                    <!-- Presets -->
+                    <div class="timer-section-title">Preset Rapidi</div>
                     <div class="timer-presets-large">
-                        <button class="preset-btn-large" data-minutes="5">5 min</button>
-                        <button class="preset-btn-large" data-minutes="15">15 min</button>
-                        <button class="preset-btn-large" data-minutes="25">25 min</button>
-                        <button class="preset-btn-large" data-minutes="45">45 min</button>
+                        <button class="preset-btn-large" data-minutes="15">15m</button>
+                        <button class="preset-btn-large" data-minutes="25">25m</button>
+                        <button class="preset-btn-large" data-minutes="45">45m</button>
+                        <button class="preset-btn-large" data-minutes="60">60m</button>
+                        <button class="preset-btn-large" id="custom-preset-btn">Personalizzato</button>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="timer-advanced-settings">
+                        <div class="setting-card">
+                            <div class="setting-icon"><i class="fas fa-mug-hot"></i></div>
+                            <label for="break-duration">Pausa</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="break-duration" value="5" min="1" max="60">
+                                <span>min</span>
+                            </div>
+                        </div>
+                        <div class="setting-card">
+                            <div class="setting-icon"><i class="fas fa-sync-alt"></i></div>
+                            <label for="timer-cycles">Cicli</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="timer-cycles" value="1" min="1" max="10">
+                                <span>volte</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

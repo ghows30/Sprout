@@ -34,7 +34,6 @@ class SessionController {
     }
 
     async createSession(name, uploadedFiles) {
-        // Valida che il nome non sia vuoto
         if (!name || !name.trim()) {
             if (typeof toastManager !== 'undefined') {
                 toastManager.show('Errore', 'Inserisci un nome per la sessione', 'error');
@@ -42,7 +41,6 @@ class SessionController {
             return { success: false, error: 'EMPTY_NAME' };
         }
 
-        // Controlla se il nome esiste già
         const checkResult = await this.model.checkSessionNameExists(name);
         if (checkResult.exists) {
             if (typeof toastManager !== 'undefined') {
@@ -71,18 +69,15 @@ class SessionController {
 
     async renameSession(sessionPath, oldName, newName) {
         try {
-            // Valida che il nuovo nome non sia vuoto
             if (!newName || !newName.trim()) {
                 return { success: false, error: 'EMPTY_NAME' };
             }
 
-            // Controlla se il nome esiste già (escludendo la sessione corrente)
             const checkResult = await this.model.checkSessionNameExists(newName, sessionPath);
             if (checkResult.exists) {
                 return { success: false, error: 'SESSION_NAME_EXISTS' };
             }
 
-            // Rinomina la sessione
             const result = await this.model.renameSession(sessionPath, newName);
 
             if (result.success) {
@@ -102,7 +97,6 @@ class SessionController {
             const result = await this.model.deleteSession(sessionPath);
 
             if (result.success) {
-                // Ricarica le sessioni
                 await this.loadSessions();
 
                 if (typeof toastManager !== 'undefined') {
@@ -127,7 +121,6 @@ class SessionController {
     async openSession(session) {
         this.model.setCurrentSession(session);
 
-        // Carica i mazzi per questa sessione
         try {
             const decksResult = await this.model.loadDecks();
             if (decksResult.success) {
@@ -154,7 +147,6 @@ class SessionController {
         this.flashcardView.init();
         this.timerView.init();
 
-        // Ricarica le impostazioni per assicurarsi di avere i dati più recenti
         this.settingsModel.settings = this.settingsModel.loadSettings();
         const settings = this.settingsModel.getAllSettings();
 
@@ -246,12 +238,10 @@ class SessionController {
         const currentSession = this.model.getCurrentSession();
         if (!currentSession) return;
 
-        // Inizializza l'array dei mazzi se non esiste (per la view locale)
         if (!currentSession.decks) {
             currentSession.decks = [];
         }
 
-        // Check for duplicate name (case-sensitive, exact match only)
         const trimmedName = name.trim();
         if (currentSession.decks.some(d => d.name.trim() === trimmedName)) {
             return { success: false, error: 'DUPLICATE_NAME' };
@@ -264,15 +254,11 @@ class SessionController {
             createdAt: new Date().toISOString()
         };
 
-        // Salva su file system
         const result = await this.model.saveDeck(deck);
 
         if (result.success) {
             currentSession.decks.push(deck);
-            // Non salviamo più i mazzi in session.json
-            // this.model.saveSessionData(currentSession);
 
-            // Aggiorna la vista
             if (!skipRender) {
                 this.flashcardView.render(currentSession.decks);
             }
@@ -290,11 +276,9 @@ class SessionController {
         const deckIndex = currentSession.decks.findIndex(d => d.id === deckId);
         if (deckIndex === -1) return { success: false, error: 'DECK_NOT_FOUND' };
 
-        // Rimuovi dalla lista locale
         const deck = currentSession.decks[deckIndex];
         currentSession.decks.splice(deckIndex, 1);
 
-        // Salva le modifiche (rimuove il file del mazzo)
         const result = await this.model.deleteDeck(deck);
 
         if (result.success) {
@@ -322,7 +306,6 @@ class SessionController {
 
         const oldName = deck.name;
 
-        // Usa il nuovo metodo del model che gestisce la rinomina della cartella
         const result = await this.model.renameDeck(oldName, trimmedName);
 
         if (result.success) {
@@ -351,7 +334,6 @@ class SessionController {
 
         deck.cards.push(flashcard);
 
-        // Salva il mazzo aggiornato su file system
         await this.model.saveDeck(deck);
 
         this.flashcardView.render(currentSession.decks);
@@ -485,11 +467,9 @@ class SessionController {
         card.status = status;
         card.lastReviewed = new Date().toISOString();
 
-        // Salva il mazzo aggiornato
         const result = await this.model.saveDeck(deck);
 
         if (result.success) {
-            // Aggiorna la vista principale (conteggi)
             this.flashcardView.render(currentSession.decks);
             return true;
         }
