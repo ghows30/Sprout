@@ -26,6 +26,63 @@ class ActiveSessionView {
                         </div>
 
                         <div class="header-timer-widget" id="timer-widget">
+                            <!-- Sprout SVG -->
+                            <div class="sprout-container" id="sprout-container">
+                                <svg class="sprout" viewBox="0 0 64 64" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Ghost Track (Sfondo) -->
+                                    <g class="sprout-ghost" opacity="0.15">
+                                        <!-- Stelo semplificato: solo andata -->
+                                        <path d="M32 56 C32 46 32 38 32 30 C32 24 30 20 28 16 C27 14 28 12 32 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                                        
+                                        <!-- Foglia 1 (Basso Sx) -->
+                                        <path d="M32 42 C26 40 22 38 22 34 C22 31 24 30 26 31 C28 32 30 36 32 42" fill="currentColor" />
+                                        
+                                        <!-- Foglia 2 (Basso Dx) -->
+                                        <path d="M32 36 C38 34 42 32 42 28 C42 25 40 24 38 25 C36 26 34 30 32 36" fill="currentColor" />
+                                        
+                                        <!-- Foglia 3 (Alto Sx) -->
+                                        <path d="M32 26 C26 24 20 20 20 16 C20 13 23 12 26 13 C29 14 31 18 32 26" fill="currentColor" />
+                                        
+                                        <!-- Foglia 4 (Alto Dx - Cima) -->
+                                        <path d="M32 18 C38 16 42 12 42 8 C42 5 39 4 36 6 C34 8 33 12 32 18" fill="currentColor" />
+                                    </g>
+
+                                    <!-- Animated Parts -->
+                                    <!-- Stelo: Semplificato -->
+                                    <path id="sprout-stem" 
+                                        d="M32 56 C32 46 32 38 32 30 C32 24 30 20 28 16 C27 14 28 12 32 12" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        stroke-width="3" 
+                                        stroke-linecap="round" 
+                                        stroke-linejoin="round" />
+                                    
+                                    <!-- Foglia 1 -->
+                                    <path id="sprout-leaf-1" 
+                                        d="M32 42 C26 40 22 38 22 34 C22 31 24 30 26 31 C28 32 30 36 32 42" 
+                                        fill="currentColor" 
+                                        opacity="0" />
+                                        
+                                    <!-- Foglia 2 -->
+                                    <path id="sprout-leaf-2" 
+                                        d="M32 36 C38 34 42 32 42 28 C42 25 40 24 38 25 C36 26 34 30 32 36" 
+                                        fill="currentColor" 
+                                        opacity="0" />
+                                        
+                                    <!-- Foglia 3 -->
+                                    <path id="sprout-leaf-3" 
+                                        d="M32 26 C26 24 20 20 20 16 C20 13 23 12 26 13 C29 14 31 18 32 26" 
+                                        fill="currentColor" 
+                                        opacity="0" />
+                                        
+                                    <!-- Foglia 4 -->
+                                    <path id="sprout-leaf-4" 
+                                        d="M32 18 C38 16 42 12 42 8 C42 5 39 4 36 6 C34 8 33 12 32 18" 
+                                        fill="currentColor" 
+                                        opacity="0" />
+                                </svg>
+                            </div>
+                            
                             <button class="timer-icon-btn" id="timer-icon-btn">
                                 <i class="fas fa-clock"></i>
                             </button>

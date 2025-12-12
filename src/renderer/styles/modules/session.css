@@ -1242,7 +1242,7 @@
 }
 
 .flip-card-back {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, #1a1a1a 100%);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
     color: white;
     transform: rotateY(180deg);
     border: 1px solid var(--primary-light);
@@ -1363,29 +1363,29 @@
 }
 
 .review-btn {
-    background-color: #ff9f43;
+    background-color: #d97757;
     color: #fff;
-    border: 2px solid #ff9f43;
+    border: 2px solid #d97757;
 }
 
 .review-btn:hover {
-    background-color: #e67e22;
-    border-color: #e67e22;
+    background-color: #c06042;
+    border-color: #c06042;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(230, 126, 34, 0.3);
+    box-shadow: 0 6px 12px rgba(217, 119, 87, 0.3);
 }
 
 .consolidated-btn {
-    background-color: #2ecc71;
+    background-color: var(--primary-light);
     color: #fff;
-    border: 2px solid #2ecc71;
+    border: 2px solid var(--primary-light);
 }
 
 .consolidated-btn:hover {
-    background-color: #27ae60;
-    border-color: #27ae60;
+    background-color: var(--primary-medium);
+    border-color: var(--primary-medium);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(39, 174, 96, 0.3);
+    box-shadow: 0 6px 12px rgba(88, 129, 87, 0.3);
 }
 
 .btn-text-icon {
@@ -1431,17 +1431,17 @@
 }
 
 .review-btn.active {
-    background-color: #ff9f43;
+    background-color: #d97757;
     color: white;
-    box-shadow: 0 0 20px rgba(255, 159, 67, 0.6);
-    border-color: #ff9f43;
+    box-shadow: 0 0 20px rgba(217, 119, 87, 0.6);
+    border-color: #d97757;
 }
 
 .consolidated-btn.active {
-    background-color: #2ecc71;
+    background-color: var(--primary-light);
     color: white;
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
-    border-color: #2ecc71;
+    box-shadow: 0 0 20px rgba(88, 129, 87, 0.6);
+    border-color: var(--primary-light);
 }
 
 /* Custom Scrollbar for Session Sidebar */
@@ -1561,4 +1561,45 @@
 .sidebar.collapsed .flashcard-list,
 .sidebar.collapsed .deck-list {
     display: none !important;
+}
+
+/* Sprout Animation */
+.sprout-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: var(--primary-dark);
+}
+
+.sprout {
+    overflow: visible;
+}
+
+#sprout-stem {
+    stroke: var(--primary-dark);
+    fill: none;
+    stroke-dasharray: 120;
+    /* Aumentato per sicurezza */
+    stroke-dashoffset: 120;
+    /* Inizia nascosto */
+    transition: stroke-dashoffset 1s linear;
+}
+
+#sprout-leaf-1,
+#sprout-leaf-2,
+#sprout-leaf-3,
+#sprout-leaf-4 {
+    fill: var(--primary-dark);
+    opacity: 0;
+    /* transition: opacity 0.5s ease-in-out; removed for JS interpolation */
+    transform-origin: center bottom;
+}
+
+/* Quando il timer è completo o quasi */
+.sprout.blooming #sprout-leaf-1,
+.sprout.blooming #sprout-leaf-2,
+.sprout.blooming #sprout-leaf-3,
+.sprout.blooming #sprout-leaf-4 {
+    opacity: 1;
 }

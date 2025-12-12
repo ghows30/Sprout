@@ -32,6 +32,14 @@ class TimerView {
         // Advanced Inputs
         this.breakInput = document.getElementById('break-duration');
         this.cyclesInput = document.getElementById('timer-cycles');
+
+        // Sprout Elements
+        this.sproutStem = document.getElementById('sprout-stem');
+        this.sproutLeaf1 = document.getElementById('sprout-leaf-1');
+        this.sproutLeaf2 = document.getElementById('sprout-leaf-2');
+        this.sproutLeaf3 = document.getElementById('sprout-leaf-3');
+        this.sproutLeaf4 = document.getElementById('sprout-leaf-4');
+        this.sproutSvg = document.querySelector('.sprout');
     }
 
     bindEvents() {
@@ -87,6 +95,59 @@ class TimerView {
         // Update UI to reflect mode
         if (this.timerDisplay) {
             this.timerDisplay.style.color = this.mode === 'BREAK' ? 'var(--accent-color)' : 'var(--primary-dark)';
+        }
+
+        this.updateSprout();
+    }
+
+    updateSprout() {
+        if (!this.sproutStem) return;
+
+        // Calcola la percentuale di completamento
+        // Totale secondi iniziali vs secondi correnti
+        // Se siamo in pausa o reset, gestisci di conseguenza
+
+        let totalSeconds = this.workMinutes * 60;
+        if (this.mode === 'BREAK') {
+            // Durante la pausa magari lo sprout "riposa" o rimane sbocciato?
+            // Per ora resettiamo o manteniamo sbocciato se era work?
+            // Facciamo che cresce solo durante il WORK
+            totalSeconds = this.breakMinutes * 60;
+        }
+
+        const elapsed = totalSeconds - this.timerSeconds;
+        const percentage = Math.min(1, Math.max(0, elapsed / totalSeconds));
+
+        // Animazione Stelo (stroke-dashoffset da 120 a 0)
+        // 120 è la lunghezza approssimativa del path
+        const offset = 120 - (percentage * 120);
+        this.sproutStem.style.strokeDashoffset = offset;
+
+        // Animazione Foglie Graduale (Interpolazione)
+        // Helper function for interpolation
+        const interpolate = (start, end, value) => {
+            if (value < start) return 0;
+            if (value > end) return 1;
+            return (value - start) / (end - start);
+        };
+
+        // Foglia 1: 10% -> 30%
+        if (this.sproutLeaf1) this.sproutLeaf1.style.opacity = interpolate(0.10, 0.30, percentage);
+
+        // Foglia 2: 30% -> 50%
+        if (this.sproutLeaf2) this.sproutLeaf2.style.opacity = interpolate(0.30, 0.50, percentage);
+
+        // Foglia 3: 50% -> 70%
+        if (this.sproutLeaf3) this.sproutLeaf3.style.opacity = interpolate(0.50, 0.70, percentage);
+
+        // Foglia 4: 70% -> 90%
+        if (this.sproutLeaf4) this.sproutLeaf4.style.opacity = interpolate(0.70, 0.90, percentage);
+
+        // Classe blooming per stato finale sicuro
+        if (percentage >= 0.99 && this.sproutSvg) {
+            this.sproutSvg.classList.add('blooming');
+        } else if (this.sproutSvg) {
+            this.sproutSvg.classList.remove('blooming');
         }
     }
 
