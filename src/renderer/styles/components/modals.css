@@ -49,3 +49,68 @@
     gap: 12px;
     margin-top: 30px;
 }
+
+/* Modal Large Variant */
+.modal-content.modal-large {
+    width: 700px;
+    max-width: 90vw;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+/* Checkbox Style */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.checkbox-wrapper label {
+    margin-bottom: 0;
+    cursor: pointer;
+    font-weight: normal;
+    color: var(--text-secondary);
+}

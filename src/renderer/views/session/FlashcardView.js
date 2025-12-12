@@ -82,11 +82,15 @@ class FlashcardView {
                     <h2>Nuovo Mazzo</h2>
                     <div class="form-group">
                         <label for="deck-name-input">Nome del mazzo</label>
-                        <input type="text" id="deck-name-input" class="form-control" placeholder="Es. Storia Romana">
+                        <input type="text" id="deck-name-input" class="form-control" placeholder="Es. Storia Romana" autocomplete="off">
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="create-deck-add-cards" checked>
+                        <label for="create-deck-add-cards">Aggiungi subito delle flashcard</label>
                     </div>
                     <div class="modal-actions">
                         <button class="btn btn-secondary close-modal-btn">Annulla</button>
-                        <button class="btn btn-primary" id="confirm-create-deck">Crea</button>
+                        <button class="btn btn-primary" id="confirm-create-deck">Crea Mazzo</button>
                     </div>
                 </div>
             `;
@@ -99,20 +103,21 @@ class FlashcardView {
             cardModal.id = 'create-card-modal';
             cardModal.className = 'modal';
             cardModal.innerHTML = `
-                <div class="modal-content">
+                <div class="modal-content modal-large">
                     <span class="close-modal">&times;</span>
                     <h2>Nuova Flashcard</h2>
                     <div class="form-group">
-                        <label for="card-question-input">Domanda</label>
-                        <textarea id="card-question-input" class="form-control" rows="3" placeholder="Inserisci la domanda..."></textarea>
+                        <label for="card-question-input">Domanda (Fronte)</label>
+                        <textarea id="card-question-input" class="form-control" rows="3" placeholder="Scrivi la domanda o il concetto da ricordare..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="card-answer-input">Risposta</label>
-                        <textarea id="card-answer-input" class="form-control" rows="3" placeholder="Inserisci la risposta..."></textarea>
+                        <label for="card-answer-input">Risposta (Retro)</label>
+                        <textarea id="card-answer-input" class="form-control" rows="5" placeholder="Scrivi la risposta corretta..."></textarea>
                     </div>
                     <div class="modal-actions">
                         <button class="btn btn-secondary close-modal-btn">Annulla</button>
-                        <button class="btn btn-primary" id="confirm-create-card">Aggiungi</button>
+                        <button class="btn btn-outline-primary" id="save-add-another-card">Salva e Aggiungi Altra</button>
+                        <button class="btn btn-primary" id="save-close-card">Salva e Chiudi</button>
                     </div>
                 </div>
             `;
@@ -256,10 +261,12 @@ class FlashcardView {
         const deckModal = document.getElementById('create-deck-modal');
         const confirmDeckBtn = document.getElementById('confirm-create-deck');
         const deckInput = document.getElementById('deck-name-input');
+        const addCardsCheckbox = document.getElementById('create-deck-add-cards');
 
         const closeDeckModal = () => {
             deckModal.style.display = 'none';
             deckInput.value = '';
+            if (addCardsCheckbox) addCardsCheckbox.checked = true; // Reset to default
         };
 
         deckModal.querySelectorAll('.close-modal, .close-modal-btn').forEach(el => {
@@ -272,6 +279,19 @@ class FlashcardView {
                 const result = await this.controller.createDeck(name);
                 if (result && result.success) {
                     closeDeckModal();
+
+                    // Se l'utente vuole aggiungere subito carte
+                    if (addCardsCheckbox && addCardsCheckbox.checked) {
+                        // Aspetta un attimo per la transizione
+                        setTimeout(() => {
+                            this.showCreateCardModal(result.deck.id);
+                        }, 100);
+                    } else {
+                        if (typeof toastManager !== 'undefined') {
+                            toastManager.show('Mazzo creato', `Mazzo "${name}" creato con successo`, 'success');
+                        }
+                    }
+
                 } else if (result && result.error === 'DUPLICATE_NAME') {
                     if (typeof toastManager !== 'undefined') {
                         toastManager.show('Errore', 'Esiste già un mazzo con questo nome', 'error');
@@ -286,7 +306,8 @@ class FlashcardView {
 
         // Card Modal Events
         const cardModal = document.getElementById('create-card-modal');
-        const confirmCardBtn = document.getElementById('confirm-create-card');
+        const saveAddAnotherBtn = document.getElementById('save-add-another-card');
+        const saveCloseBtn = document.getElementById('save-close-card');
         const questionInput = document.getElementById('card-question-input');
         const answerInput = document.getElementById('card-answer-input');
 
@@ -301,14 +322,42 @@ class FlashcardView {
             el.addEventListener('click', closeCardModal);
         });
 
-        confirmCardBtn.onclick = () => {
+        const saveCard = async (shouldClose) => {
             const question = questionInput.value.trim();
             const answer = answerInput.value.trim();
-            if (question && answer && this.currentDeckId) {
-                this.controller.createFlashcard(this.currentDeckId, question, answer);
-                closeCardModal();
+
+            if (!question || !answer) {
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Campi mancanti', 'Inserisci sia la domanda che la risposta', 'warning');
+                }
+                return;
+            }
+
+            if (this.currentDeckId) {
+                await this.controller.createFlashcard(this.currentDeckId, question, answer);
+
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Carta aggiunta', 'Flashcard salvata con successo', 'success');
+                }
+
+                if (shouldClose) {
+                    closeCardModal();
+                } else {
+                    // Reset inputs for next card
+                    questionInput.value = '';
+                    answerInput.value = '';
+                    questionInput.focus();
+                }
             }
         };
+
+        if (saveAddAnotherBtn) {
+            saveAddAnotherBtn.onclick = () => saveCard(false);
+        }
+
+        if (saveCloseBtn) {
+            saveCloseBtn.onclick = () => saveCard(true);
+        }
 
         // Import Modal Events
         const importModal = document.getElementById('import-flashcards-modal');
