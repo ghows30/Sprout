@@ -58,6 +58,28 @@ class SettingsModel {
         return this.settings;
     }
 
+    importSettings(newSettings) {
+        if (!newSettings) return false;
+
+        try {
+            // Unisci le nuove impostazioni con i default per sicurezza
+            this.settings = { ...this.defaults, ...newSettings };
+
+            // Salva nel localStorage
+            localStorage.setItem(this.storageKey, JSON.stringify(this.settings));
+
+            // Applica subito effetti visibili (es. tema, lingua)
+            if (this.settings.theme) {
+                this.applyTheme(this.settings.theme);
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error importing settings:', error);
+            return false;
+        }
+    }
+
     // Applica il tema
     applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme || this.settings.theme);

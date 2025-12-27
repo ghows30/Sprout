@@ -5,6 +5,7 @@ const registerSessionHandlers = require('./handlers/session-handler');
 const registerFileHandlers = require('./handlers/file-handler');
 const registerNoteHandlers = require('./handlers/note-handler');
 const registerDeckHandlers = require('./handlers/deck-handler');
+const registerBackupHandlers = require('./handlers/backup-handler');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -29,6 +30,7 @@ app.whenReady().then(() => {
     registerFileHandlers();
     registerNoteHandlers();
     registerDeckHandlers();
+    registerBackupHandlers();
 });
 
 app.on('window-all-closed', () => {

@@ -70,6 +70,33 @@ class SettingsView {
                     </div>
                 </section>
 
+                <!-- Backup & Ripristino -->
+                <section class="settings-section">
+                    <h2><i class="fas fa-save"></i> Backup & Ripristino</h2>
+                    <div class="settings-group">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label>Esporta Dati</label>
+                                <p class="setting-description">Scarica un archivio con tutti i tuoi dati e impostazioni</p>
+                            </div>
+                            <button id="export-backup-btn" class="btn btn-secondary">
+                                <i class="fas fa-download"></i> Esporta Backup
+                            </button>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label>Importa Dati</label>
+                                <p class="setting-description">Ripristina i dati da un backup precedente (sovrascrive i dati attuali)</p>
+                            </div>
+                            <button id="import-backup-btn" class="btn btn-secondary">
+                                <i class="fas fa-upload"></i> Importa Backup
+                            </button>
+                            <input type="file" id="import-backup-input" accept=".zip" style="display: none;">
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Azioni -->
                 <div class="settings-actions">
                     <button id="reset-settings-btn" class="btn-danger">
@@ -126,6 +153,28 @@ class SettingsView {
             resetBtn.addEventListener('click', () => {
                 if (confirm('Sei sicuro di voler ripristinare le impostazioni predefinite?')) {
                     this.controller.resetSettings();
+                }
+            });
+        }
+        // Backup & Restore
+        const exportBackupBtn = document.getElementById('export-backup-btn');
+        if (exportBackupBtn) {
+            exportBackupBtn.addEventListener('click', () => {
+                this.controller.exportBackup();
+            });
+        }
+
+        const importBackupBtn = document.getElementById('import-backup-btn');
+        const importBackupInput = document.getElementById('import-backup-input');
+        if (importBackupBtn && importBackupInput) {
+            importBackupBtn.addEventListener('click', () => {
+                importBackupInput.click();
+            });
+
+            importBackupInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.controller.importBackup();
+                    e.target.value = ''; // Reset per permettere ri-selezione
                 }
             });
         }
