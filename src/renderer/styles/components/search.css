@@ -21,9 +21,9 @@ header.header-with-action {
     /* Smaller padding */
     border-radius: 8px;
     /* Slightly smaller radius */
-    border: 1px solid transparent;
-    /* No border initially for cleaner look */
-    background-color: var(--bg-secondary, #f8f9fa);
+    border: 1px solid var(--border-color, #d0cec7);
+    /* Added border for visibility */
+    background-color: var(--card-bg, #ffffff);
     font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     /* Smaller font */
