@@ -30,7 +30,7 @@ class SessionController {
 
     async loadSessions() {
         const sessions = await this.model.getSessions();
-        this.listView.render(sessions);
+        this.listView.setSessions(sessions);
     }
 
     async createSession(name, uploadedFiles) {

@@ -1,0 +1,84 @@
+/* Header with Action */
+header.header-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+/* Search Bar Container */
+.search-bar-container {
+    position: relative;
+    width: 250px;
+    /* Smaller width */
+    margin-bottom: 0;
+}
+
+/* Search Bar Input */
+.search-bar-container input {
+    width: 100%;
+    padding: 8px 12px 8px 35px;
+    /* Smaller padding */
+    border-radius: 8px;
+    /* Slightly smaller radius */
+    border: 1px solid transparent;
+    /* No border initially for cleaner look */
+    background-color: var(--bg-secondary, #f8f9fa);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    /* Smaller font */
+    color: var(--text-main, #2c3e50);
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-bar-container input::placeholder {
+    color: var(--text-muted, #95a5a6);
+    font-size: 0.85rem;
+}
+
+/* Hover & Focus States */
+.search-bar-container input:hover {
+    background-color: var(--bg-hover, #ffffff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-bar-container input:focus {
+    background-color: #ffffff;
+    border-color: var(--primary-color, #2ecc71);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+}
+
+/* Search Icon */
+.search-bar-container .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted, #95a5a6);
+    pointer-events: none;
+    font-size: 0.85rem;
+    transition: color 0.3s ease;
+}
+
+.search-bar-container input:focus+.search-icon,
+.search-bar-container input:hover+.search-icon {
+    color: var(--primary-color, #2ecc71);
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+    .search-bar-container input {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #ecf0f1;
+    }
+
+    .search-bar-container input:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .search-bar-container input:focus {
+        background-color: rgba(0, 0, 0, 0.3);
+        border-color: var(--primary-color);
+    }
+}

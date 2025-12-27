@@ -2,6 +2,8 @@ class SessionListView {
     constructor(controller) {
         this.controller = controller;
         this.uploadedFiles = [];
+        this.sessions = [];
+        this.searchQuery = '';
 
         // Initialize modal logic immediately as it is global
         this.initModal();
@@ -10,9 +12,15 @@ class SessionListView {
     getTemplate() {
         return `
         <div id="study-spaces" class="view-section">
-            <header>
-                <h1>Spazi di Studio</h1>
-                <p class="subtitle">Le tue sessioni organizzate.</p>
+            <header class="header-with-action">
+                <div>
+                    <h1>Spazi di Studio</h1>
+                    <p class="subtitle">Le tue sessioni organizzate.</p>
+                </div>
+                <div class="search-bar-container">
+                    <input type="text" id="sessions-search" placeholder="Cerca..." autocomplete="off">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
             </header>
             <div class="grid" id="sessions-grid">
                 <!-- Folders will be injected here -->
@@ -41,6 +49,14 @@ class SessionListView {
 
     cacheViewDOM() {
         this.sessionsGrid = document.getElementById('sessions-grid');
+        this.searchInput = document.getElementById('sessions-search');
+
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', (e) => {
+                this.searchQuery = e.target.value.trim().toLowerCase();
+                this.render();
+            });
+        }
     }
 
     bindModalEvents() {
@@ -159,14 +175,24 @@ class SessionListView {
         // Se c'è un errore, il controller mostrerà già il toast, il modal rimane aperto
     }
 
+    setSessions(sessions) {
+        this.sessions = sessions || [];
+        this.render();
+    }
+
     render(sessions) {
+        // Backward compatibility or if passed directly
+        if (sessions) {
+            this.sessions = sessions;
+        }
         // Ensure DOM is cached if not already (e.g. first render)
         if (!this.sessionsGrid) this.cacheViewDOM();
 
         if (!this.sessionsGrid) return;
         this.sessionsGrid.innerHTML = '';
 
-        if (sessions.length === 0) {
+        // Check if there are no sessions at all (global empty state)
+        if (this.sessions.length === 0) {
             this.sessionsGrid.innerHTML = `
                 <div class="empty-state-container" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px; text-align: center; background-color: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color, #ccc); margin-top: 20px;">
                     <div class="icon-container" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;">
@@ -190,7 +216,22 @@ class SessionListView {
             return;
         }
 
-        sessions.forEach(session => {
+        const filteredSessions = this.sessions.filter(session => {
+            if (!this.searchQuery) return true;
+            return session.name.toLowerCase().includes(this.searchQuery);
+        });
+
+        if (filteredSessions.length === 0 && this.searchQuery) {
+            this.sessionsGrid.innerHTML = `
+                <div class="empty-state-search" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>Nessuno spazio trovato per "<strong>${this.searchQuery}</strong>"</p>
+                </div>
+            `;
+            return;
+        }
+
+        filteredSessions.forEach(session => {
             const folder = document.createElement('div');
             folder.className = 'folder-wrapper';
             folder.setAttribute('data-session-path', session.fullPath);

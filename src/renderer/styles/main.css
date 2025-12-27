@@ -13,6 +13,7 @@
 @import 'components/modals.css';
 @import 'components/toast.css';
 @import 'components/context-menu.css';
+@import 'components/search.css';
 
 /* Modules */
 @import 'modules/home.css';
