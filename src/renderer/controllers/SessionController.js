@@ -8,6 +8,11 @@ class SessionController {
         this.flashcardView = new FlashcardView(this);
         // DocumentView initialized in initActiveSessionViews
 
+        // Instantiate Sub-Controllers
+        this.fileController = new SessionFileController(this);
+        this.noteController = new SessionNoteController(this);
+        this.deckController = new SessionDeckController(this);
+
         this.init();
     }
 
@@ -171,325 +176,26 @@ class SessionController {
         }
     }
 
+    // --- Delegates to SessionNoteController ---
     async saveNote(content, fileName) {
-        if (typeof toastManager === 'undefined') return;
-
-        try {
-            const result = await this.model.saveNote(content, fileName);
-            if (result.success) {
-                toastManager.show('Salvato', 'Appunti salvati con successo!', 'success');
-            } else {
-                toastManager.show('Errore', 'Errore durante il salvataggio: ' + result.error, 'error');
-            }
-        } catch (error) {
-            console.error(error);
-            toastManager.show('Errore', 'Errore durante il salvataggio.', 'error');
-        }
+        return this.noteController.saveNote(content, fileName);
     }
 
     async autoSaveNote(content) {
-        try {
-            const result = await this.model.autoSaveNotes(content);
-            return result;
-        } catch (error) {
-            console.error('Auto-save error:', error);
-            return { success: false };
-        }
+        return this.noteController.autoSaveNote(content);
     }
 
     async loadNotes() {
-        try {
-            const result = await this.model.loadNotes();
-            return result;
-        } catch (error) {
-            console.error('Load notes error:', error);
-            return { success: false, content: '' };
-        }
+        return this.noteController.loadNotes();
     }
 
+    // --- Delegates to SessionFileController ---
     async addDocuments() {
-        if (typeof toastManager === 'undefined') {
-            console.error('ToastManager not found');
-            return;
-        }
-
-        try {
-            const result = await this.model.addFilesToSession();
-
-            if (result.success && result.files) {
-                // Check for duplicates
-                if (result.duplicates && result.duplicates.length > 0) {
-                    const dupCount = result.duplicates.length;
-                    toastManager.show(
-                        'File duplicati',
-                        `${dupCount} file ${dupCount === 1 ? 'è già presente' : 'sono già presenti'} nella sessione`,
-                        'warning'
-                    );
-                }
-
-                // Check for new files added
-                const newCount = result.newFilesCount || 0;
-                if (newCount > 0) {
-                    const currentSession = this.model.getCurrentSession();
-                    currentSession.files = result.files;
-                    this.activeView.renderFileList(currentSession.files);
-
-                    toastManager.show(
-                        'File aggiunti',
-                        `${newCount} ${newCount === 1 ? 'file aggiunto' : 'file aggiunti'} con successo`,
-                        'success'
-                    );
-                }
-            } else if (result.canceled) {
-                // User canceled - no notification needed
-            }
-        } catch (error) {
-            console.error(error);
-            toastManager.show('Errore', 'Impossibile aggiungere i file', 'error');
-        }
+        return this.fileController.addDocuments();
     }
 
-    async createDeck(name, options = {}) {
-        const { skipRender = false } = options;
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession) return;
-
-        if (!currentSession.decks) {
-            currentSession.decks = [];
-        }
-
-        const trimmedName = name.trim();
-        if (currentSession.decks.some(d => d.name.trim() === trimmedName)) {
-            return { success: false, error: 'DUPLICATE_NAME' };
-        }
-
-        const deck = {
-            id: Date.now(),
-            name: name,
-            cards: [],
-            createdAt: new Date().toISOString()
-        };
-
-        const result = await this.model.saveDeck(deck);
-
-        if (result.success) {
-            currentSession.decks.push(deck);
-
-            if (!skipRender) {
-                this.flashcardView.render(currentSession.decks);
-            }
-            return { success: true, deck };
-        } else {
-            console.error('Failed to save deck:', result.error);
-            return null;
-        }
-    }
-
-    async deleteDeck(deckId) {
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession || !currentSession.decks) return { success: false, error: 'NO_SESSION' };
-
-        const deckIndex = currentSession.decks.findIndex(d => d.id === deckId);
-        if (deckIndex === -1) return { success: false, error: 'DECK_NOT_FOUND' };
-
-        const deck = currentSession.decks[deckIndex];
-        currentSession.decks.splice(deckIndex, 1);
-
-        const result = await this.model.deleteDeck(deck);
-
-        if (result.success) {
-            this.flashcardView.render(currentSession.decks);
-            return { success: true };
-        } else {
-            // Ripristina in caso di errore
-            currentSession.decks.splice(deckIndex, 0, deck);
-            return { success: false, error: result.error };
-        }
-    }
-
-    async renameDeck(deckId, newName) {
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession || !currentSession.decks) return { success: false, error: 'NO_SESSION' };
-
-        // Check duplicati (case-sensitive)
-        const trimmedName = newName.trim();
-        if (currentSession.decks.some(d => d.id !== deckId && d.name.trim() === trimmedName)) {
-            return { success: false, error: 'DUPLICATE_NAME' };
-        }
-
-        const deck = currentSession.decks.find(d => d.id === deckId);
-        if (!deck) return { success: false, error: 'DECK_NOT_FOUND' };
-
-        const oldName = deck.name;
-
-        const result = await this.model.renameDeck(oldName, trimmedName);
-
-        if (result.success) {
-            deck.name = trimmedName;
-            this.flashcardView.render(currentSession.decks);
-            return { success: true };
-        } else {
-            return { success: false, error: result.error };
-        }
-    }
-
-    async createFlashcard(deckId, question, answer) {
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession || !currentSession.decks) return;
-
-        const deck = currentSession.decks.find(d => d.id === deckId);
-        if (!deck) return;
-
-        const flashcard = {
-            id: Date.now(),
-            question: question,
-            answer: answer,
-            status: 'new', // new, review, consolidated
-            createdAt: new Date().toISOString()
-        };
-
-        deck.cards.push(flashcard);
-
-        await this.model.saveDeck(deck);
-
-        this.flashcardView.render(currentSession.decks);
-    }
-
-    normalizeStatus(status) {
-        if (!status) return 'new';
-        const normalized = String(status).toLowerCase();
-        if (['new', 'review', 'consolidated'].includes(normalized)) return normalized;
-        if (['todo', 'pending'].includes(normalized)) return 'new';
-        if (['done', 'ok', 'consolidato', 'completed'].includes(normalized)) return 'consolidated';
-        return 'new';
-    }
-
-    async importFlashcards({ cards, targetDeckId = null, newDeckName = '', useDeckField = false }) {
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession) {
-            return { success: false, error: 'NO_SESSION' };
-        }
-
-        if (!cards || cards.length === 0) {
-            return { success: false, error: 'NO_CARDS' };
-        }
-
-        if (!currentSession.decks) {
-            currentSession.decks = [];
-        }
-
-        const deckById = new Map(currentSession.decks.map(deck => [String(deck.id), deck]));
-        const deckByName = new Map(currentSession.decks.map(deck => [deck.name.toLowerCase(), deck]));
-
-        const ensureDeck = async (name) => {
-            if (!name) return null;
-            const key = name.toLowerCase();
-            if (deckByName.has(key)) return deckByName.get(key);
-
-            const created = await this.createDeck(name, { skipRender: true });
-            if (created) {
-                deckById.set(String(created.id), created);
-                deckByName.set(key, created);
-            }
-            return created;
-        };
-
-        let fallbackDeck = null;
-        if (targetDeckId) {
-            fallbackDeck = deckById.get(String(targetDeckId)) || deckById.get(Number(targetDeckId));
-        } else if (newDeckName) {
-            fallbackDeck = await ensureDeck(newDeckName);
-        }
-
-        if (!useDeckField && !fallbackDeck) {
-            return { success: false, error: 'DECK_NOT_SELECTED' };
-        }
-
-        const deckBuckets = new Map();
-        let skipped = 0;
-        let imported = 0;
-        let counter = 0;
-        const now = Date.now();
-
-        for (const draft of cards) {
-            const deckNameFromFile = draft.deck && String(draft.deck).trim();
-            let targetDeck = fallbackDeck;
-
-            if (useDeckField && deckNameFromFile) {
-                targetDeck = await ensureDeck(deckNameFromFile);
-            } else if (useDeckField && !deckNameFromFile && fallbackDeck) {
-                targetDeck = fallbackDeck;
-            } else if (useDeckField && !deckNameFromFile && !fallbackDeck) {
-                skipped++;
-                continue;
-            }
-
-            if (!targetDeck) {
-                skipped++;
-                continue;
-            }
-
-            if (!deckBuckets.has(targetDeck.id)) {
-                deckBuckets.set(targetDeck.id, []);
-            }
-
-            deckBuckets.get(targetDeck.id).push({
-                id: now + counter++,
-                question: draft.question,
-                answer: draft.answer,
-                status: this.normalizeStatus(draft.status),
-                createdAt: new Date().toISOString()
-            });
-        }
-
-        for (const [deckId, newCards] of deckBuckets.entries()) {
-            const deck = deckById.get(String(deckId)) || deckById.get(Number(deckId));
-            if (!deck) {
-                skipped += newCards.length;
-                continue;
-            }
-
-            deck.cards = deck.cards || [];
-            deck.cards.push(...newCards);
-
-            const saveResult = await this.model.saveDeck(deck);
-            if (!saveResult.success) {
-                return { success: false, error: saveResult.error || 'SAVE_FAILED' };
-            }
-
-            imported += newCards.length;
-        }
-
-        this.flashcardView.render(currentSession.decks);
-
-        return {
-            success: true,
-            imported,
-            skipped,
-            updatedDecks: deckBuckets.size
-        };
-    }
-
-    async updateFlashcardStatus(deckId, cardId, status) {
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession || !currentSession.decks) return;
-
-        const deck = currentSession.decks.find(d => d.id === deckId);
-        if (!deck) return;
-
-        const card = deck.cards.find(c => c.id === cardId);
-        if (!card) return;
-
-        card.status = status;
-        card.lastReviewed = new Date().toISOString();
-
-        const result = await this.model.saveDeck(deck);
-
-        if (result.success) {
-            this.flashcardView.render(currentSession.decks);
-            return true;
-        }
-        return false;
+    async deleteFile(fileName) {
+        return this.fileController.deleteFile(fileName);
     }
 
     openDocument(file, fileName) {
@@ -500,6 +206,32 @@ class SessionController {
         this.documentView.openDocument(absolutePath, fileName);
     }
 
+    // --- Delegates to SessionDeckController ---
+    async createDeck(name, options = {}) {
+        return this.deckController.createDeck(name, options);
+    }
+
+    async deleteDeck(deckId) {
+        return this.deckController.deleteDeck(deckId);
+    }
+
+    async renameDeck(deckId, newName) {
+        return this.deckController.renameDeck(deckId, newName);
+    }
+
+    async createFlashcard(deckId, question, answer) {
+        return this.deckController.createFlashcard(deckId, question, answer);
+    }
+
+    async updateFlashcardStatus(deckId, cardId, status) {
+        return this.deckController.updateFlashcardStatus(deckId, cardId, status);
+    }
+
+    async importFlashcards(params) {
+        return this.deckController.importFlashcards(params);
+    }
+
+    // --- Timer Methods (Simple enough to keep here or move to TimerController later) ---
     isTimerRunning() {
         return this.timerView && this.timerView.isRunning();
     }
@@ -507,33 +239,6 @@ class SessionController {
     stopTimer() {
         if (this.timerView) {
             this.timerView.resetTimer();
-        }
-    }
-    async deleteFile(fileName) {
-        const currentSession = this.model.getCurrentSession();
-        if (!currentSession) return;
-
-        const result = await this.model.deleteFile(fileName);
-
-        if (result.success) {
-            // Rimuovi il file dalla sessione locale
-            currentSession.files = currentSession.files.filter(f => f !== fileName);
-
-            // Aggiorna la vista
-            this.activeView.renderFileList(currentSession.files);
-
-            // Se il file eliminato era aperto, chiudi il visualizzatore
-            if (this.documentView && this.documentView.viewerFilename.textContent === fileName.split('/').pop().split('\\').pop()) {
-                this.documentView.closeDocument();
-            }
-
-            if (typeof toastManager !== 'undefined') {
-                toastManager.show('Successo', 'File eliminato correttamente', 'success');
-            }
-        } else {
-            if (typeof toastManager !== 'undefined') {
-                toastManager.show('Errore', 'Impossibile eliminare il file', 'error');
-            }
         }
     }
 }
