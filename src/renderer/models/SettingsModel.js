@@ -13,7 +13,12 @@ class SettingsModel {
 
             // Timer
             defaultSessionDuration: 25, // minuti (Pomodoro)
-            soundNotifications: true
+            soundNotifications: true,
+
+            // Accessibilità
+            accessibilityFontSize: 'normal', // small, normal, large, x-large
+            accessibilityFont: 'default', // default, dyslexic
+            colorFilter: 'none' // none, protanopia, deuteranopia, tritanopia, achromatopsia, grayscale
         };
 
         this.settings = this.loadSettings();

@@ -29,8 +29,6 @@ class SettingsView {
                     </div>
                 </section>
 
-
-
                 <!-- Timer -->
                 <section class="settings-section">
                     <h2><i class="fas fa-clock"></i> Timer</h2>
@@ -48,29 +46,52 @@ class SettingsView {
                     </div>
                 </section>
 
-
-
-                <!-- Informazioni -->
+                <!-- Accessibilità -->
                 <section class="settings-section">
-                    <h2><i class="fas fa-info-circle"></i> Informazioni</h2>
+                    <h2><i class="fas fa-universal-access"></i> Accessibilità</h2>
                     <div class="settings-group">
-                        <div class="setting-item info-item">
+                        <div class="setting-item">
                             <div class="setting-info">
-                                <label>Versione</label>
-                                <p class="setting-description">Sprout v1.0.0</p>
+                                <label for="font-size-select">Dimensione Testo</label>
+                                <p class="setting-description">Regola la dimensione del testo</p>
                             </div>
+                            <select id="font-size-select" class="setting-control">
+                                <option value="small">Piccolo</option>
+                                <option value="normal">Normale</option>
+                                <option value="large">Grande</option>
+                                <option value="xlarge">Molto Grande</option>
+                            </select>
                         </div>
 
-                        <div class="setting-item info-item">
+                        <div class="setting-item">
                             <div class="setting-info">
-                                <label>Sviluppato con</label>
-                                <p class="setting-description">Electron, JavaScript, Quill.js</p>
+                                <label for="font-family-select">Tipo di Font</label>
+                                <p class="setting-description">Seleziona il tipo di carattere per l'interfaccia</p>
                             </div>
+                            <select id="font-family-select" class="setting-control">
+                                <option value="default">Standard (Inter)</option>
+                                <option value="dyslexic">Alta Leggibilità (OpenDyslexic)</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="color-filter-select">Filtro Colore</label>
+                                <p class="setting-description">Filtri per daltonismo</p>
+                            </div>
+                            <select id="color-filter-select" class="setting-control">
+                                <option value="none">Nessuno</option>
+                                <option value="protanopia">Protanopia (Rosso)</option>
+                                <option value="deuteranopia">Deuteranopia (Verde)</option>
+                                <option value="tritanopia">Tritanopia (Blu)</option>
+                                <option value="achromatopsia">Achromatopsia (Monocromatico)</option>
+                                <option value="grayscale">Scala di Grigi (Contrasto)</option>
+                            </select>
                         </div>
                     </div>
                 </section>
 
-                <!-- Backup & Ripristino -->
+                <!-- Backup & Ricostruzione (Precedente) -->
                 <section class="settings-section">
                     <h2><i class="fas fa-save"></i> Backup & Ripristino</h2>
                     <div class="settings-group">
@@ -93,6 +114,26 @@ class SettingsView {
                                 <i class="fas fa-upload"></i> Importa Backup
                             </button>
                             <input type="file" id="import-backup-input" accept=".zip" style="display: none;">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Informazioni -->
+                <section class="settings-section">
+                    <h2><i class="fas fa-info-circle"></i> Informazioni</h2>
+                    <div class="settings-group">
+                        <div class="setting-item info-item">
+                            <div class="setting-info">
+                                <label>Versione</label>
+                                <p class="setting-description">Sprout v1.0.0</p>
+                            </div>
+                        </div>
+
+                        <div class="setting-item info-item">
+                            <div class="setting-info">
+                                <label>Sviluppato con</label>
+                                <p class="setting-description">Electron, JavaScript</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -122,40 +163,43 @@ class SettingsView {
             });
         }
 
-
-
-
-
         // Session duration
         const sessionDurationInput = document.getElementById('session-duration-input');
         const sessionDurationValue = document.getElementById('session-duration-value');
         if (sessionDurationInput && sessionDurationValue) {
-            // Aggiorna il valore visivo durante il trascinamento
             sessionDurationInput.addEventListener('input', (e) => {
                 const value = parseInt(e.target.value);
                 sessionDurationValue.textContent = `${value}min`;
             });
 
-            // Applica l'impostazione solo al rilascio (conferma)
             sessionDurationInput.addEventListener('change', (e) => {
                 const value = parseInt(e.target.value);
                 this.controller.updateSetting('defaultSessionDuration', value);
             });
         }
 
-
-
-
-
-        // Reset settings
-        const resetBtn = document.getElementById('reset-settings-btn');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (confirm('Sei sicuro di voler ripristinare le impostazioni predefinite?')) {
-                    this.controller.resetSettings();
-                }
+        // Accessibility Events
+        const fontSizeSelect = document.getElementById('font-size-select');
+        if (fontSizeSelect) {
+            fontSizeSelect.addEventListener('change', (e) => {
+                this.controller.updateSetting('accessibilityFontSize', e.target.value);
             });
         }
+
+        const fontFamilySelect = document.getElementById('font-family-select');
+        if (fontFamilySelect) {
+            fontFamilySelect.addEventListener('change', (e) => {
+                this.controller.updateSetting('accessibilityFont', e.target.value);
+            });
+        }
+
+        const colorFilterSelect = document.getElementById('color-filter-select');
+        if (colorFilterSelect) {
+            colorFilterSelect.addEventListener('change', (e) => {
+                this.controller.updateSetting('colorFilter', e.target.value);
+            });
+        }
+
         // Backup & Restore
         const exportBackupBtn = document.getElementById('export-backup-btn');
         if (exportBackupBtn) {
@@ -174,7 +218,17 @@ class SettingsView {
             importBackupInput.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
                     this.controller.importBackup();
-                    e.target.value = ''; // Reset per permettere ri-selezione
+                    e.target.value = '';
+                }
+            });
+        }
+
+        // Reset settings
+        const resetBtn = document.getElementById('reset-settings-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Sei sicuro di voler ripristinare le impostazioni predefinite?')) {
+                    this.controller.resetSettings();
                 }
             });
         }
@@ -187,10 +241,6 @@ class SettingsView {
         const themeSelect = document.getElementById('theme-select');
         if (themeSelect) themeSelect.value = settings.theme;
 
-
-
-
-
         // Session duration
         const sessionDurationInput = document.getElementById('session-duration-input');
         const sessionDurationValue = document.getElementById('session-duration-value');
@@ -199,8 +249,14 @@ class SettingsView {
             sessionDurationValue.textContent = `${settings.defaultSessionDuration}min`;
         }
 
+        // Load Accessibility Settings
+        const fontSizeSelect = document.getElementById('font-size-select');
+        if (fontSizeSelect) fontSizeSelect.value = settings.accessibilityFontSize || 'normal';
 
+        const fontFamilySelect = document.getElementById('font-family-select');
+        if (fontFamilySelect) fontFamilySelect.value = settings.accessibilityFont || 'default';
 
-
+        const colorFilterSelect = document.getElementById('color-filter-select');
+        if (colorFilterSelect) colorFilterSelect.value = settings.colorFilter || 'none';
     }
 }

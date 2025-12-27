@@ -1,6 +1,9 @@
 /* Base */
 @import 'base/variables.css';
+/* Base */
+@import 'base/variables.css';
 @import 'base/base.css';
+@import 'base/accessibility.css';
 
 /* Layout */
 @import 'layout/layout.css';

@@ -1,0 +1,76 @@
+/* Accessibility Styles */
+
+/* Font Size Scaling */
+:root {
+    --base-font-scale: 1;
+}
+
+html.text-small {
+    --base-font-scale: 0.85;
+}
+
+html.text-normal {
+    --base-font-scale: 1;
+}
+
+html.text-large {
+    --base-font-scale: 1.2;
+}
+
+html.text-xlarge {
+    --base-font-scale: 1.5;
+}
+
+/* Apply scaling to common elements */
+html {
+    font-size: calc(16px * var(--base-font-scale));
+}
+
+/* Dyslexic Font support */
+/* Using Comic Sans MS as a widely available alternative that shares some dyslexia-friendly traits 
+   until OpenDyslexic is properly bundled */
+body.font-dyslexic {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif !important;
+}
+
+body.font-dyslexic h1,
+body.font-dyslexic h2,
+body.font-dyslexic h3,
+body.font-dyslexic p,
+body.font-dyslexic span,
+body.font-dyslexic button,
+body.font-dyslexic input,
+body.font-dyslexic textarea {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif !important;
+    letter-spacing: 0.05em;
+    /* Slightly increased spacing helps readability */
+    line-height: 1.6;
+}
+
+/* Color Blindness Filters */
+/* Simulation/Assistance filters using SVG matrix or simplified CSS filters */
+
+/* Protanopia (Red-blind): Boost blues/yellows, reduced reds */
+body.filter-protanopia {
+    filter: contrast(1.1) sepia(0.3) saturate(1.2) hue-rotate(-10deg);
+}
+
+/* Deuteranopia (Green-blind): Similar to Protanopia but focuses on red/blue distinction */
+body.filter-deuteranopia {
+    filter: contrast(1.1) sepia(0.2) saturate(1.2) hue-rotate(10deg);
+}
+
+/* Tritanopia (Blue-blind): Boost reds/cyans */
+body.filter-tritanopia {
+    filter: contrast(1.2) saturate(1.4) hue-rotate(180deg) sepia(0.1);
+}
+
+/* Achromatopsia (Monochromacy) */
+body.filter-achromatopsia {
+    filter: grayscale(1);
+}
+
+/* Grayscale (High Contrast helper) */
+body.filter-grayscale {
+    filter: grayscale(1) contrast(1.2);
+}

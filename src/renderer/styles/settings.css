@@ -187,15 +187,15 @@
     border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
     background-color: var(--primary-color);
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
     transform: translateX(24px);
 }
 
-.toggle-switch input:focus + .toggle-slider {
+.toggle-switch input:focus+.toggle-slider {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
@@ -253,6 +253,13 @@
 
 [data-theme="dark"] .setting-control {
     background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    color-scheme: dark;
+}
+
+[data-theme="dark"] select option {
+    background-color: #2d2d2d;
+    color: var(--text-main);
 }
 
 [data-theme="dark"] .btn-secondary {

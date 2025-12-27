@@ -11,7 +11,9 @@ class SettingsController {
     init() {
         this.view.init();
         // Applica il tema salvato
+        // Applica settings
         this.model.applyTheme();
+        this.applyAccessibilitySettings();
     }
 
     getSettings() {
@@ -42,6 +44,13 @@ class SettingsController {
             case 'editorFontFamily':
                 // Aggiorna l'editor se è aperto
                 this.updateEditorStyles();
+            case 'accessibilityFontSize':
+            case 'accessibilityFont':
+            case 'colorFilter':
+                this.applyAccessibilitySettings();
+                break;
+            case 'defaultSessionDuration':
+                // Timer setting, no immediate visual effect
                 break;
         }
     }
@@ -52,6 +61,33 @@ class SettingsController {
         if (editor) {
             editor.style.fontSize = `${settings.editorFontSize}px`;
             editor.style.fontFamily = settings.editorFontFamily;
+        }
+    }
+
+    applyAccessibilitySettings() {
+        const settings = this.model.getAllSettings();
+        const body = document.body;
+
+        const html = document.documentElement;
+
+        // Reset classes
+        html.classList.remove('text-small', 'text-normal', 'text-large', 'text-xlarge');
+        body.classList.remove('font-dyslexic');
+        body.classList.remove('filter-protanopia', 'filter-deuteranopia', 'filter-tritanopia', 'filter-achromatopsia', 'filter-grayscale');
+
+        // Font Size
+        if (settings.accessibilityFontSize && settings.accessibilityFontSize !== 'normal') {
+            html.classList.add(`text-${settings.accessibilityFontSize}`);
+        }
+
+        // Dyslexic Font
+        if (settings.accessibilityFont === 'dyslexic') {
+            body.classList.add('font-dyslexic');
+        }
+
+        // Color Filter
+        if (settings.colorFilter && settings.colorFilter !== 'none') {
+            body.classList.add(`filter-${settings.colorFilter}`);
         }
     }
 
