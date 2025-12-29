@@ -4,6 +4,8 @@ class SessionListView {
         this.uploadedFiles = [];
         this.sessions = [];
         this.searchQuery = '';
+        this.isSelectionMode = false;
+        this.selectedSessions = new Set();
 
         // Initialize modal logic immediately as it is global
         this.initModal();
@@ -17,9 +19,20 @@ class SessionListView {
                     <h1>Spazi di Studio</h1>
                     <p class="subtitle">Le tue sessioni organizzate.</p>
                 </div>
-                <div class="search-bar-container">
-                    <input type="text" id="sessions-search" placeholder="Cerca..." autocomplete="off">
-                    <i class="fas fa-search search-icon"></i>
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <div class="search-bar-container">
+                        <input type="text" id="sessions-search" placeholder="Cerca..." autocomplete="off">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                     <button id="import-sessions-btn" class="btn btn-secondary icon-btn" title="Importa Spazi">
+                        <i class="fas fa-file-import"></i>
+                    </button>
+                    <button id="export-sessions-btn" class="btn btn-secondary icon-btn" title="Esporta Selezionati" style="display: none;">
+                        <i class="fas fa-file-export"></i>
+                    </button>
+                    <button id="toggle-selection-btn" class="btn btn-secondary icon-btn" title="Seleziona">
+                        <i class="fas fa-check-square"></i>
+                    </button>
                 </div>
             </header>
             <div class="grid" id="sessions-grid">
@@ -27,11 +40,6 @@ class SessionListView {
             </div>
         </div>
         `;
-    }
-
-    init() {
-        this.cacheViewDOM();
-        // No specific view events to bind for now other than grid interactions handled in render
     }
 
     initModal() {
@@ -47,9 +55,17 @@ class SessionListView {
         this.bindModalEvents();
     }
 
+    init() {
+        this.cacheViewDOM();
+        this.bindViewEvents();
+    }
+
     cacheViewDOM() {
         this.sessionsGrid = document.getElementById('sessions-grid');
         this.searchInput = document.getElementById('sessions-search');
+        this.importBtn = document.getElementById('import-sessions-btn');
+        this.selectionBtn = document.getElementById('toggle-selection-btn');
+        this.exportBtn = document.getElementById('export-sessions-btn');
 
         if (this.searchInput) {
             this.searchInput.addEventListener('input', (e) => {
@@ -58,6 +74,96 @@ class SessionListView {
             });
         }
     }
+
+    bindViewEvents() {
+        if (this.importBtn) {
+            this.importBtn.addEventListener('click', () => this.handleImport());
+        }
+
+        if (this.selectionBtn) {
+            this.selectionBtn.addEventListener('click', () => this.toggleSelectionMode());
+        }
+
+        if (this.exportBtn) {
+            this.exportBtn.addEventListener('click', () => this.handleExport());
+        }
+    }
+
+    async handleImport() {
+        await this.controller.importSessions();
+    }
+
+    async handleExport() {
+        if (this.selectedSessions.size === 0) return;
+
+        await this.controller.exportSelectedSessions(Array.from(this.selectedSessions));
+        this.toggleSelectionMode(false); // Exit selection mode after export
+    }
+
+    toggleSelectionMode(forceState = null) {
+        this.isSelectionMode = forceState !== null ? forceState : !this.isSelectionMode;
+        this.selectedSessions.clear();
+
+        const handleEscKey = (e) => {
+            if (e.key === 'Escape' && this.isSelectionMode) {
+                this.toggleSelectionMode(false);
+            }
+        };
+
+        if (this.isSelectionMode) {
+            this.selectionBtn.classList.add('active');
+            this.exportBtn.style.display = 'flex';
+            this.importBtn.style.display = 'none';
+            document.addEventListener('keydown', handleEscKey, { once: true }); // Use once:true to auto-cleanup, or manage manually if repeated toggling is an issue
+            // Actually, better to manage manually to ensure consistent behavior if user re-enters
+        } else {
+            this.selectionBtn.classList.remove('active');
+            this.exportBtn.style.display = 'none';
+            this.importBtn.style.display = 'flex';
+            // Listener cleanup handled by 'once: true' or we can leave it to be garbage collected visually but ideally should remove if toggled off manually
+        }
+
+        // Proper cleanup approach:
+        if (this.isSelectionMode) {
+            // Add named listener
+            this._escListener = (e) => {
+                if (e.key === 'Escape') {
+                    this.toggleSelectionMode(false);
+                }
+            };
+            document.addEventListener('keydown', this._escListener);
+        } else {
+            // Remove listener
+            if (this._escListener) {
+                document.removeEventListener('keydown', this._escListener);
+                this._escListener = null;
+            }
+        }
+
+        this.render();
+    }
+
+    toggleSessionSelection(sessionPath) {
+        if (this.selectedSessions.has(sessionPath)) {
+            this.selectedSessions.delete(sessionPath);
+        } else {
+            this.selectedSessions.add(sessionPath);
+        }
+        this.render(); // Re-render to update checkbox states
+    }
+
+    // ... initModal, handleDrop, handleFiles, renderFileList, openModal, closeModal, handleCreateSession ...
+    // Note: I am NOT replacing those, just the top part and then jump to render() via separate chunks if needed 
+    // BUT since I replaced up to cacheViewDOM in one go above, I need to be careful.
+    // The chunk above replaces constructor -> cacheViewDOM (+ bindViewEvents).
+    // I need to skip initModal...handleCreateSession which are fine.
+    // And then replace render() below.
+
+    // Wait, the chunk replaces constructor...cacheViewDOM. 
+    // And bindViewEvents is new.
+    // I need to start a new ReplacementChunk for render().
+
+
 
     bindModalEvents() {
         if (this.closeModalBtn) this.closeModalBtn.addEventListener('click', () => this.closeModal());
@@ -104,6 +210,11 @@ class SessionListView {
         // Listen for global event to open modal
         if (typeof eventManager !== 'undefined') {
             eventManager.subscribe('OPEN_NEW_SESSION_MODAL', () => this.openModal());
+            eventManager.subscribe('ENTER_SELECTION_MODE', () => {
+                if (!this.isSelectionMode) {
+                    this.toggleSelectionMode(true);
+                }
+            });
         }
     }
 
@@ -234,9 +345,28 @@ class SessionListView {
         filteredSessions.forEach(session => {
             const folder = document.createElement('div');
             folder.className = 'folder-wrapper';
+
+            // Selection Mode Logic
+            const isSelected = this.selectedSessions.has(session.fullPath);
+            let selectionOverlay = '';
+
+            if (this.isSelectionMode) {
+                folder.classList.add('selection-mode');
+                if (isSelected) {
+                    folder.classList.add('selected');
+                }
+
+                selectionOverlay = `
+                    <div class="selection-overlay ${isSelected ? 'checked' : ''}">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                `;
+            }
+
             folder.setAttribute('data-session-path', session.fullPath);
             folder.setAttribute('data-session-name', session.name);
             folder.innerHTML = `
+                ${selectionOverlay}
                 <div class="folder">
                     <div class="folder-back">
                         <div class="paper"></div>
@@ -256,6 +386,12 @@ class SessionListView {
 
             // Click per aprire la sessione
             folder.addEventListener('click', (e) => {
+                // Gestione Selezione
+                if (this.isSelectionMode) {
+                    this.toggleSessionSelection(session.fullPath);
+                    return;
+                }
+
                 // Previeni l'apertura se si sta cliccando sul menu contestuale
                 if (e.target.closest('.context-menu')) return;
                 this.controller.openSession(session);

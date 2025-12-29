@@ -1,0 +1,96 @@
+/* Study Spaces / Session List Styles */
+
+.folder-wrapper {
+    position: relative;
+    /* Ensure absolute children are positioned relative to this */
+}
+
+.selection-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    margin-top: -30px;
+    /* Offset to center vertically relative to icon */
+    transform-origin: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background: white;
+    /* Default background */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: #bdc3c7;
+    /* Gray check when not selected */
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.folder-wrapper.selection-mode .selection-overlay {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* When folder is selected */
+.folder-wrapper.selected .selection-overlay,
+.selection-overlay.checked {
+    background: var(--primary-color, #2ecc71);
+    border-color: white;
+    color: white;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Highlight the folder itself when selected */
+.folder-wrapper.selected .folder {
+    border-color: var(--primary-color, #2ecc71);
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Hover effect in selection mode */
+.folder-wrapper.selection-mode:hover .folder {
+    transform: scale(0.98);
+}
+
+.folder-wrapper.selection-mode {
+    cursor: pointer;
+}
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--bg-secondary, #f5f6fa);
+    border: 1px solid var(--border-color, #ddd);
+    color: var(--text-secondary, #7f8c8d);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background: var(--bg-hover, #ecf0f1);
+    color: var(--text-main, #2c3e50);
+}
+
+.icon-btn.active {
+    background: var(--primary-color, #2ecc71);
+    color: white;
+    border-color: var(--primary-color, #2ecc71);
+}

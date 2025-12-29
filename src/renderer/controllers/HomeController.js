@@ -105,4 +105,31 @@ class HomeController {
             return { success: false, error: error.message };
         }
     }
+
+    async importSessions() {
+        if (typeof toastManager !== 'undefined') {
+            toastManager.show('Info', 'Selezione file in corso...', 'info');
+        }
+
+        // HomeModel might not have importSessions if I didn't verify it has it (I'm adding it now).
+        // Wait, I am adding it to HomeModel in the previous step.
+        const result = await this.model.importSessions();
+
+        if (result.success) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Successo', `${result.count} spazi importati con successo`, 'success');
+            }
+            await this.loadRecentSessions();
+
+            // Notify other parts of the app if needed (e.g. if Study Spaces view is also open/cached)
+            if (typeof eventManager !== 'undefined') {
+                eventManager.notify('SESSION_CREATED', null); // Trigger reload in SessionListView
+            }
+        } else if (!result.canceled) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Errore', 'Errore durante l\'importazione: ' + result.error, 'error');
+            }
+        }
+        return result;
+    }
 }

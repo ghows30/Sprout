@@ -241,4 +241,50 @@ class SessionController {
             this.timerView.resetTimer();
         }
     }
+
+    async exportSelectedSessions(sessionPaths) {
+        if (!sessionPaths || sessionPaths.length === 0) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Info', 'Seleziona almeno uno spazio da esportare', 'info');
+            }
+            return { success: false };
+        }
+
+        if (typeof toastManager !== 'undefined') {
+            toastManager.show('Info', 'Esportazione in corso...', 'info');
+        }
+
+        const result = await this.model.exportSessions(sessionPaths);
+
+        if (result.success) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Successo', 'Spazi esportati con successo', 'success');
+            }
+        } else if (!result.canceled) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Errore', 'Errore durante l\'esportazione: ' + result.error, 'error');
+            }
+        }
+        return result;
+    }
+
+    async importSessions() {
+        if (typeof toastManager !== 'undefined') {
+            toastManager.show('Info', 'Selezione file in corso...', 'info');
+        }
+
+        const result = await this.model.importSessions();
+
+        if (result.success) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Successo', `${result.count} spazi importati con successo`, 'success');
+            }
+            await this.loadSessions();
+        } else if (!result.canceled) {
+            if (typeof toastManager !== 'undefined') {
+                toastManager.show('Errore', 'Errore durante l\'importazione: ' + result.error, 'error');
+            }
+        }
+        return result;
+    }
 }

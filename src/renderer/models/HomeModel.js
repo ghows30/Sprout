@@ -51,4 +51,8 @@ class HomeModel {
             sessionPath: sessionPath
         });
     }
+
+    async importSessions() {
+        return await this.ipcRenderer.invoke('import-sessions');
+    }
 }

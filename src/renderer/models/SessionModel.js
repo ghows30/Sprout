@@ -138,4 +138,14 @@ class SessionModel {
             fileName: fileName
         });
     }
+
+    async exportSessions(sessionPaths) {
+        return await this.ipcRenderer.invoke('export-sessions', {
+            sessionPaths: sessionPaths
+        });
+    }
+
+    async importSessions() {
+        return await this.ipcRenderer.invoke('import-sessions');
+    }
 }

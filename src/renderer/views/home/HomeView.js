@@ -21,6 +21,22 @@ class HomeView {
                         <h3>Nuovo Spazio</h3>
                         <p>Crea un nuovo spazio di studio.</p>
                     </div>
+
+                    <div class="card" id="home-import-btn">
+                        <div class="card-icon" style="background-color: rgba(52, 152, 219, 0.1); color: #3498db;">
+                            <i class="fas fa-file-import"></i>
+                        </div>
+                        <h3>Importa</h3>
+                        <p>Ripristina uno spazio da backup.</p>
+                    </div>
+
+                    <div class="card" id="home-export-btn">
+                        <div class="card-icon" style="background-color: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                            <i class="fas fa-file-export"></i>
+                        </div>
+                        <h3>Esporta</h3>
+                        <p>Seleziona spazi da esportare.</p>
+                    </div>
                 </div>
             </section>
 
@@ -332,6 +348,34 @@ class HomeView {
                 }
             });
         }
+
+        const importBtn = document.getElementById('home-import-btn');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => {
+                this.controller.importSessions();
+            });
+        }
+
+        const exportBtn = document.getElementById('home-export-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                // Redirect to sessions view for export (maybe auto-enable selection? for now just redirect)
+                if (typeof App !== 'undefined' && App.showView) {
+                    App.showView('study-spaces');
+
+                    // Trigger selection mode
+                    if (typeof eventManager !== 'undefined') {
+                        setTimeout(() => {
+                            eventManager.notify('ENTER_SELECTION_MODE');
+                            if (typeof toastManager !== 'undefined') {
+                                toastManager.show('Info', 'Seleziona gli spazi da esportare', 'info');
+                            }
+                        }, 100); // Small delay to allow view transition
+                    }
+                }
+            });
+        }
     }
 }
+
 
