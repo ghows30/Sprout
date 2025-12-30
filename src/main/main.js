@@ -11,14 +11,19 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
+        backgroundColor: '#2d2d2d', // Dark theme background
+        show: false, // Don't show until ready to prevent white flash
         webPreferences: {
-            nodeIntegration: true,
             nodeIntegration: true,
             contextIsolation: false
         }
     });
 
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
+
+    win.once('ready-to-show', () => {
+        win.show();
+    });
 }
 
 app.whenReady().then(() => {

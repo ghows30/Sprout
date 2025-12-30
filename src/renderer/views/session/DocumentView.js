@@ -104,6 +104,60 @@ class DocumentView {
             element = document.createElement('img');
             element.src = fullPath;
             element.className = 'document-content';
+        } else if (ext === 'docx') {
+            element = document.createElement('div');
+            element.className = 'document-content docx-container';
+            // Styles moved to session.css for better theming and cleaner code
+            // display: flex removed to avoid clipping large content on the left
+            // Centering handled via CSS on the inner wrapper
+
+            const fs = require('fs');
+            const path = require('path');
+
+            // Require using path relative to the application entry (index.html),
+            // as this script is loaded via <script> tag.
+            // utils/DocxRenderer resolves to src/renderer/utils/DocxRenderer.js
+            let DocxRenderer;
+            try {
+                DocxRenderer = require('./utils/DocxRenderer');
+            } catch (e) {
+                // Fallback: try resolving with absolute path if relative fails
+                try {
+                    DocxRenderer = require(path.join(__dirname, 'utils/DocxRenderer'));
+                } catch (e2) {
+                    console.error('Failed to load DocxRenderer:', e, e2);
+                    if (typeof toastManager !== 'undefined') {
+                        toastManager.show('Errore', 'Errore caricamento modulo DocxRenderer', 'error');
+                    }
+                    element.innerHTML = '<div class="error-message">Error loading Word viewer module.</div>';
+                    return element;
+                }
+            }
+
+            try {
+                // Ensure protocol is stripped for fs
+                // Handle file:/// prefix (3 slashes) or file:// (2 slashes)
+                let cleanPath = fullPath.replace(/^file:\/\/\/?/, '');
+
+                // On Windows, if path starts with slash but shouldn't (e.g. /C:/...), remove leading slash
+                // Logic: if cleanPath looks like /C:/Users..., make it C:/Users...
+                if (process.platform === 'win32' && cleanPath.startsWith('/') && cleanPath[2] === ':') {
+                    cleanPath = cleanPath.substring(1);
+                }
+                // Decode URI component in case path has %20 spaces
+                cleanPath = decodeURIComponent(cleanPath);
+
+                console.log('Opening DOCX path:', cleanPath);
+
+                const buffer = fs.readFileSync(cleanPath);
+                DocxRenderer.render(buffer, element);
+            } catch (err) {
+                console.error('Error reading docx:', err);
+                if (typeof toastManager !== 'undefined') {
+                    toastManager.show('Errore', 'Errore lettura file Word: ' + err.message, 'error');
+                }
+                element.innerHTML = `<div class="error-message">Error reading document: ${err.message}</div>`;
+            }
         } else {
             // For external files, we don't create a viewer element
             // We just open it externally and don't add a tab? 

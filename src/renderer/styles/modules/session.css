@@ -1608,3 +1608,35 @@
 .sprout.blooming #sprout-leaf-4 {
     opacity: 1;
 }
+
+/* Docx Preview Styles */
+.docx-container {
+    overflow: auto;
+    padding: 40px;
+    background-color: var(--bg-secondary);
+    /* Matches app theme (light/dark) */
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.docx-viewer {
+    margin: 0 auto !important;
+    /* Center the document horizontally safely */
+    background-color: white !important;
+    /* Paper is always white */
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15) !important;
+    /* Deeper shadow for "lifted" look */
+    max-width: 100%;
+    min-height: 800px;
+    /* Ensure it looks like a page even if empty */
+}
+
+/* Ensure the wrapper created by docx-preview behaves nicely */
+.docx-container .docx-wrapper {
+    background: transparent !important;
+    padding: 0 !important;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
