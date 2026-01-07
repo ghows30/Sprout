@@ -129,12 +129,7 @@ class SettingsView {
                             </div>
                         </div>
 
-                        <div class="setting-item info-item">
-                            <div class="setting-info">
-                                <label>Sviluppato con</label>
-                                <p class="setting-description">Electron, JavaScript</p>
-                            </div>
-                        </div>
+
                     </div>
                 </section>
 
