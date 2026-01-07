@@ -147,8 +147,6 @@ class DocumentView {
                 // Decode URI component in case path has %20 spaces
                 cleanPath = decodeURIComponent(cleanPath);
 
-                console.log('Opening DOCX path:', cleanPath);
-
                 const buffer = fs.readFileSync(cleanPath);
                 DocxRenderer.render(buffer, element);
             } catch (err) {

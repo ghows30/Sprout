@@ -17,7 +17,6 @@ class EventManager {
 
     notify(event, data) {
         if (!this.events[event]) return;
-        // console.log(`Notifying ${event}`, data);
         this.events[event].forEach(callback => callback(data));
     }
 }

@@ -57,7 +57,6 @@ class RichTextEditor {
                 }
             });
 
-            console.log('Editor Quill inizializzato correttamente');
             return this.editor;
         } catch (error) {
             console.error('Errore durante l\'inizializzazione dell\'editor:', error);
@@ -126,7 +125,7 @@ class RichTextEditor {
         if (!oldContent || !oldContent.content) return '';
 
         let text = '';
-        tiptapContent.content.forEach(node => {
+        oldContent.content.forEach(node => {
             if (node.type === 'paragraph' && node.content) {
                 node.content.forEach(textNode => {
                     if (textNode.text) {
