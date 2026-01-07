@@ -1,116 +1,117 @@
-# Sprout 🌱 (🇮🇹)
+# Sprout 🌱
 
-Sprout è un'applicazione desktop moderna progettata per ottimizzare il tuo flusso di studio. Combina la gestione organizzata dei documenti, un potente editor di testo e un sistema avanzato di flashcard per aiutarti a imparare in modo più efficace. Costruito con Electron, offre un'esperienza fluida e reattiva, ideale per studenti e professionisti che vogliono mantenere tutto il materiale di studio in un unico posto.
+**Sprout** è un'applicazione desktop moderna progettata per ottimizzare il tuo flusso di studio. Combina la gestione organizzata dei documenti, un potente editor di testo e un sistema avanzato di flashcard per aiutarti a imparare in modo più efficace.
 
-## Funzionalità Principali
-*   **Gestione Sessioni**: Organizza il tuo studio in spazi dedicati.
-*   **Editor Avanzato**: Prendi appunti ricchi con formattazione, liste e altro.
-*   **Flashcard Intelligenti**: Crea mazzi, studia con il metodo della ripetizione e traccia i tuoi progressi.
-*   **Modalità Studio**: Interfaccia immersiva per concentrarti sui concetti chiave, con funzionalità di "Annulla" per correggere errori.
-*   **Timer Integrato**: Gestisci il tempo di studio direttamente nell'app.
+Costruito con **Electron**, offre un'esperienza fluida e reattiva, ideale per studenti e professionisti che vogliono mantenere tutto il materiale di studio in un unico posto.
 
 ---
 
-## Come Iniziare
+## ✨ Funzionalità Principali
+
+*   **📂 Gestione Sessioni**: Organizza il tuo studio in spazi dedicati e separati.
+*   **📝 Editor Avanzato**: Prendi appunti ricchi con formattazione, liste, immagini e altro ancora.
+*   **💡 Flashcard Intelligenti**: Crea mazzi, studia con il metodo della ripetizione e traccia i tuoi progressi.
+*   **🧠 Modalità Studio**: Interfaccia immersiva per concentrarti sui concetti chiave, con funzionalità di "Annulla" per correggere errori.
+*   **⏱️ Timer Integrato**: Gestisci il tempo di studio direttamente nell'app con un timer personalizzabile.
+*   **🎨 Personalizzazione**: Temi chiaro/scuro e opzioni di accessibilità.
+
+---
+
+## 🚀 Come Iniziare (Per il Professore / Valutatore)
+
+Segui questi passaggi per scaricare, installare e avviare il progetto sulla tua macchina.
 
 ### Prerequisiti
-Assicurati di avere installato:
+Assicurati di avere installato sul tuo computer:
 *   [Node.js](https://nodejs.org/) (versione 14 o superiore)
-*   [npm](https://www.npmjs.com/) (solitamente incluso con Node.js)
+*   [npm](https://www.npmjs.com/) (solitamente incluso nell'installazione di Node.js)
 
 ### Installazione
-1.  Clona il repository:
-    ```bash
-    git clone https://github.com/tuo-username/Sprout.git
-    ```
-2.  Entra nella cartella del progetto:
-    ```bash
-    cd Sprout
-    ```
-3.  Installa le dipendenze:
+
+1.  **Apri il terminale** nella cartella radice del progetto (dove si trova questo file `README.md`).
+2.  **Installa le dipendenze** eseguendo il comando:
     ```bash
     npm install
     ```
+    *Questo scaricherà tutte le librerie necessarie (Electron, ecc.) nella cartella `node_modules`.*
 
 ### Avvio
-Per avviare l'applicazione in modalità sviluppo:
+
+Una volta completata l'installazione, avvia l'applicazione con:
 ```bash
 npm start
 ```
-
-
----
-
-# Sprout 🌱 (🇬🇧)
-
-Sprout is a modern desktop application designed to optimize your study flow. It combines organized document management, a powerful text editor, and an advanced flashcard system to help you learn more effectively. Built with Electron, it offers a smooth and responsive experience, ideal for students and professionals who want to keep all their study material in one place.
-
-## Key Features
-*   **Session Management**: Organize your study into dedicated spaces.
-*   **Advanced Editor**: Take rich notes with formatting, lists, and more.
-*   **Smart Flashcards**: Create decks, study with spaced repetition, and track your progress.
-*   **Study Mode**: Immersive interface to focus on key concepts, with "Undo" functionality to correct mistakes.
-*   **Built-in Timer**: Manage your study time directly within the app.
+L'applicazione si aprirà in una nuova finestra desktop.
 
 ---
 
-## Getting Started
+## 🛠️ Tecnologie Utilizzate
+
+*   **Electron**: Framework per creare applicazioni desktop cross-platform.
+*   **JavaScript (ES6+)**: Logica applicativa.
+*   **HTML5 / CSS3**: Struttura e stile dell'interfaccia (senza framework CSS pesanti).
+*   **Node.js**: Backend locale per la gestione del file system.
+
+---
+
+## 🏗️ Design Patterns Implementati
+
+Il progetto fa uso di diversi Design Patterns per garantire un'architettura manutenibile e scalabile:
+
+### 1. Observer Pattern
+Utilizzato per la gestione reattiva degli eventi.
+*   **Implementazione**: `EventManager.js` gestisce gli eventi globali (es. `SESSION_CREATED`). I componenti (viste, controller) si iscrivono a questi eventi e reagiscono automaticamente ai cambiamenti di stato senza accoppiamento diretto.
+
+### 2. Singleton Pattern
+Garantisce l'unicità delle istanze per i gestori di stato globale.
+*   **Implementazione**:
+    *   `SessionModel.js`: Unica fonte di verità per i dati della sessione corrente.
+    *   `ToastManager.js`: Gestore centralizzato per le notifiche utente.
+
+### 3. Facade Pattern
+Semplifica l'interazione con logiche complesse.
+*   **Implementazione**: `SessionController.js` agisce da Facade, esponendo metodi semplici (es. `createSession`) che orchestrano operazioni complesse tra Modello e Vista, nascondendo i dettagli implementativi all'UI.
+
+### 4. Memento Pattern
+Implementa la funzionalità di "Annulla" (Undo) nelle Flashcard.
+*   **Implementazione**:
+    *   `StudyMemento.js`: Cattura lo stato istantaneo (snapshot).
+    *   `StudyHistory.js`: (Caretaker) Mantiene la cronologia degli stati.
+    *   `FlashcardView.js`: (Originator) Crea e ripristina gli stati.
+
+### 5. Adapter Pattern
+Gestisce l'importazione di flashcard da formati diversi.
+*   **Implementazione**:
+    *   `importers/adapters/CsvFlashcardAdapter.js`: Adatta file CSV al modello interno di Card.
+    *   `importers/adapters/JsonFlashcardAdapter.js`: Adatta file JSON.
+    *   `FlashcardImportService.js`: Seleziona dinamicamente l'adapter corretto in base all'input.
+
+---
+
+*(English version below)*
+
+---
+
+# Sprout 🌱 (English)
+
+**Sprout** is a modern desktop application designated to optimize your study flow. It combines organized document management, a powerful text editor, and an advanced flashcard system.
+
+## 🚀 Getting Started
 
 ### Prerequisites
-Make sure you have installed:
-*   [Node.js](https://nodejs.org/) (version 14 or higher)
-*   [npm](https://www.npmjs.com/) (usually included with Node.js)
+*   Node.js (v14+)
+*   npm
 
-### Installation
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/Sprout.git
-    ```
-2.  Enter the project folder:
-    ```bash
-    cd Sprout
-    ```
-3.  Install dependencies:
+### Installation & Run
+1.  Open terminal in the project folder.
+2.  Install dependencies:
     ```bash
     npm install
     ```
-
-### Running
-To start the application in development mode:
-```bash
-npm start
-```
+3.  Start the app:
+    ```bash
+    npm start
+    ```
 
 ---
-
-
-
-
-
-## Design Patterns Utilizzati
-
-Pattern 1: **Observer Pattern**
-Quando si crea una sessione di studio, il sistema aggiorna la lista delle sessioni, salva i dati e cambia vista.
--   `EventManager.js` gestisce gli eventi globali (es. `SESSION_CREATED`).
--   I componenti interessati (come la lista sessioni) "osservano" questi eventi e reagiscono automaticamente.
-
-Pattern 2: **Singleton Pattern**
-Garantisce che ci sia una sola istanza di classi critiche per la gestione dello stato globale.
--   `SessionModel.js` gestisce i dati delle sessioni ed è un Singleton per evitare conflitti di dati.
--   `ToastManager.js` è un Singleton per gestire le notifiche in modo centralizzato.
-
-Pattern 3: **Facade Pattern**
-Semplifica l'interazione con sottosistemi complessi fornendo un'interfaccia unificata.
--   `SessionController.js` agisce da Facade, nascondendo la complessità delle operazioni sul modello e sulla vista, offrendo metodi semplici come `createSession` o `openSession`.
-
-Pattern 4: **Memento Pattern**
-Permette di salvare lo stato di un oggetto per poterlo ripristinare successivamente (Undo).
--   `StudyMemento.js`: Rappresenta l'istantanea dello stato (ID carta, stato precedente, indice).
--   `StudyHistory.js` (Caretaker): Gestisce la pila (stack) dei memento salvati.
--   `FlashcardView.js` (Originator): Crea i memento prima di ogni modifica e li usa per ripristinare lo stato quando l'utente preme "Annulla".
-
-Pattern 5: **Adapter Pattern (Import flashcard)**
-Isola il parsing dei formati di import da CSV/JSON in adapter dedicati e permette di estendere facilmente nuovi formati.
--   `importers/FlashcardImportService.js`: orchestration layer che seleziona l'adapter corretto e normalizza l'output in draft di flashcard.
--   `importers/adapters/CsvFlashcardAdapter.js` e `JsonFlashcardAdapter.js`: incapsulano il parsing rispettivamente di CSV (separatori/quote configurabili, fallback senza header) e JSON (array o `{ cards: [] }`).
--   `FlashcardView.js`: usa il service e presenta l'UI per scegliere formato/opzioni; il dominio vede solo DTO normalizzati (`question`, `answer`, `deck`, `status`).
+Create by Mattia Provvisorio.
